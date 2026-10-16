@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroOps</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+    
+<body>
+    <h1>AeroOps</h1>
+    <p>Dashboard mundial de análise aeronáutica.</p>
+
+    <form id="airport-form">
+        <label for="ident">Código ICAO</label>
+        <input id="ident" name="ident" required>
+
+        <label for="name">Nome do aeroporto</label>
+        <input id="name" name="name" required>
+
+        <label for="country">País</label>
+        <input id="country" name="country" required>
+
+        <label for="latitude">Latitude</label>
+        <input id="latitude" name="latitude" type="number" step="any" required>
+
+        <label for="longitude">Longitude</label>
+        <input id="longitude" name="longitude" type="number" step="any" required>
+
+        <button type="submit">Cadastrar aeroporto</button>
+    </form>
+    <script src="app.js"></script>
+</body>
+
+</html>
