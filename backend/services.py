@@ -39,3 +39,17 @@ def list_airports():
     connection.close()
 
     return [dict(row) for row in rows]
+
+
+def delete_airport(airport_id):
+    connection = get_connection()
+
+    cursor = connection.execute(
+        "DELETE FROM airports WHERE id = ?",
+        (airport_id,),
+    )
+
+    connection.commit()
+    connection.close()
+
+    return cursor.rowcount > 0
