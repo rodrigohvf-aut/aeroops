@@ -47,3 +47,39 @@ O projeto utilizará software e dados gratuitos. O único custo obrigatório ini
 
 ## Aviso
 O AeroOps é um projeto educacional e analítico. Seus dados não devem ser usados como única fonte para decisões reais de voo, navegação ou segurança operacional.
+
+# Indicadores do produto
+Total de aeroportos cadastrados.
+Total de consultas de aeroportos.
+Total de aeroportos criados.
+Total de aeroportos excluídos.
+Total de erros de validação.
+Total de acessos ao dashboard.
+Total de países representados.
+Data da última atualização dos dados.
+
+# Métricas de negócio do AeroOps
+
+Aeroportos cadastrados
+Mede a quantidade total de aeroportos armazenados no sistema.
+Atualização: sempre que um aeroporto for cadastrado ou excluído.
+
+Consultas de aeroportos
+Mede quantas vezes a lista de aeroportos foi consultada.
+Atualização: a cada requisição GET /airports.
+
+Aeroportos criados
+Mede a quantidade total de aeroportos cadastrados durante um período.
+Atualização: a cada requisição POST /airports.
+
+Aeroportos excluídos
+Mede a quantidade total de aeroportos excluídos durante um período.
+Atualização: a cada requisição DELETE /airports/{id}.
+
+Erros de validação
+Mede quantas requisições foram rejeitadas por dados inválidos.
+Atualização: a cada resposta HTTP 422.
+
+Países representados
+Mede quantos países diferentes possuem aeroportos cadastrados.
+Atualização: após alterações nos aeroportos.

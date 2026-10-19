@@ -44,3 +44,40 @@ form.addEventListener("submit", async function (event) {
 });
 
 loadAirports();
+
+async function checkTechnicalStatus() {
+    const apiStatus = document.getElementById("api-status");
+    const databaseStatus = document.getElementById("database-status");
+    const lastCheck = document.getElementById("last-check");
+
+    try {
+        const apiResponse = await fetch("http://127.0.0.1:8000/health");
+        const databaseResponse = await fetch(
+            "http://127.0.0.1:8000/health/database"
+        );
+
+        const apiData = await apiResponse.json();
+        const databaseData = await databaseResponse.json();
+
+        apiStatus.textContent = apiData.status;
+        databaseStatus.textContent = databaseData.database;
+        lastCheck.textContent = new Date().toLocaleString("pt-BR");
+    } catch (error) {
+        apiStatus.textContent = "indisponível";
+        databaseStatus.textContent = "indisponível";
+        lastCheck.textContent = new Date().toLocaleString("pt-BR");
+    }
+}
+
+checkTechnicalStatus();
+
+async function loadProductMetrics() {
+    const airportTotal = document.getElementById("airport-total");
+
+    const response = await fetch("http://127.0.0.1:8000/airports");
+    const data = await response.json();
+
+    airportTotal.textContent = data.airports.length;
+}
+
+loadProductMetrics();
