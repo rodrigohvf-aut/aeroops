@@ -15,8 +15,8 @@ def test_create_airport():
         "/airports",
         json={
             "ident": "TEST",
-            "name": "Aeroporto de Teste",
-            "country": "Brasil",
+            "name": "Test Airport",
+            "country": "Brazil",
             "latitude": -23.5,
             "longitude": -46.6,
         },
@@ -30,7 +30,7 @@ def test_create_airport_without_country():
         "/airports",
         json={
             "ident": "INVALID",
-            "name": "Aeroporto Inválido",
+            "name": "Invalid Airport",
             "latitude": -23.5,
             "longitude": -46.6,
         },
@@ -44,8 +44,8 @@ def test_delete_airport():
         "/airports",
         json={
             "ident": "DELETE01",
-            "name": "Aeroporto para Exclusão",
-            "country": "Brasil",
+            "name": "Airport to Delete",
+            "country": "Brazil",
             "latitude": -23.5,
             "longitude": -46.6,
         },
@@ -56,4 +56,4 @@ def test_delete_airport():
     delete_response = client.delete(f"/airports/{airport_id}")
 
     assert delete_response.status_code == 200
-    assert delete_response.json()["message"] == "Aeroporto removido com sucesso"
+    assert delete_response.json()["message"] == "Airport deleted successfully"

@@ -34,13 +34,13 @@ form.addEventListener("submit", async function (event) {
     });
 
     if (!response.ok) {
-        alert("Não foi possível cadastrar o aeroporto.");
+        alert("Could not add the airport.");
         return;
     }
 
     form.reset();
     await loadAirports();
-    alert("Aeroporto cadastrado com sucesso.");
+    alert("Airport added successfully.");
 });
 
 loadAirports();
@@ -61,11 +61,11 @@ async function checkTechnicalStatus() {
 
         apiStatus.textContent = apiData.status;
         databaseStatus.textContent = databaseData.database;
-        lastCheck.textContent = new Date().toLocaleString("pt-BR");
+        lastCheck.textContent = new Date().toLocaleString("en-US");
     } catch (error) {
-        apiStatus.textContent = "indisponível";
-        databaseStatus.textContent = "indisponível";
-        lastCheck.textContent = new Date().toLocaleString("pt-BR");
+        apiStatus.textContent = "unavailable";
+        databaseStatus.textContent = "unavailable";
+        lastCheck.textContent = new Date().toLocaleString("en-US");
     }
 }
 

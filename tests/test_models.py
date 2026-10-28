@@ -6,21 +6,21 @@ from backend.models import Airport
 def test_airport_valid():
     airport = Airport(
         ident="SBGR",
-        name="Aeroporto Internacional de Guarulhos",
-        country="Brasil",
+        name="Guarulhos International Airport",
+        country="Brazil",
         latitude=-23.4356,
         longitude=-46.4731,
     )
 
     assert airport.ident == "SBGR"
-    assert airport.country == "Brasil"
+    assert airport.country == "Brazil"
 
 
 def test_airport_requires_ident():
     with pytest.raises(ValidationError):
         Airport(
-            name="Aeroporto de Teste",
-            country="Brasil",
+            name="Test Airport",
+            country="Brazil",
             latitude=10,
             longitude=10,
         )

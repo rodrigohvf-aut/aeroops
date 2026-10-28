@@ -1,85 +1,82 @@
 # AeroOps
-Plataforma mundial de análise histórica de dados aeronáuticos.
 
-## Objetivo
-Criar um dashboard web para consultar, visualizar e analisar dados públicos de aeronaves, aeroportos, trajetórias e condições meteorológicas, sem depender de APIs pagas.
+![AeroOps technical overview](docs/aeroops-overview.jpg)
 
-## Escopo inicial
-A primeira versão deverá permitir:
-- consultar aeroportos do mundo;
-- visualizar pistas e informações básicas;
-- importar dados públicos de aeronaves;
-- armazenar dados históricos de posições;
-- consultar trajetórias;
-- exibir mapas e gráficos;
-- mostrar indicadores por país e aeroporto;
-- atualizar os dados periodicamente;
-- funcionar em uma VPS Hostinger;
-- utilizar PostgreSQL;
-- executar com Docker Compose.
+AeroOps is an educational platform for exploring and analyzing global aviation data. The project is being developed step by step, starting locally and preparing for deployment on a VPS and possible expansion to AWS.
 
-## Fora do escopo inicial
-- controle de aeronaves;
-- decisões de voo;
-- sistema certificado de segurança;
-- acompanhamento em tempo real;
-- uso obrigatório de APIs pagas;
-- venda de dados;
-- substituição de sistemas oficiais de aviação.
+## Current status
 
-## Fontes iniciais de dados
-- OurAirports;
-- OpenSky Network dentro dos limites gratuitos;
-- Open-Meteo;
-- dados públicos adicionais compatíveis com o projeto.
+The current application includes:
 
-## Arquitetura planejada
-- Front-end web;
-- API FastAPI;
-- PostgreSQL;
-- Docker Compose;
-- VPS Hostinger;
-- GitHub Actions;
-- atualizações periódicas por tarefas agendadas.
+- A FastAPI backend for listing, creating, and deleting airports.
+- A web interface built with HTML, CSS, and JavaScript.
+- Data validation through the API's airport model.
+- SQLite for local development.
+- A PostgreSQL development database on Supabase.
+- A separate PostgreSQL test database in local Docker.
+- A versioned SQL migration for the `airports` table.
+- Automated tests with pytest and Playwright.
+- OpenAPI documentation at `/docs`, `/redoc`, and `/openapi.json`.
+- API and database health endpoints, request logs, and basic measurements.
+- Docker Compose services for the API, Nginx, and local PostgreSQL.
 
-## Regra de custo
-O projeto utilizará software e dados gratuitos. O único custo obrigatório inicial será a VPS da Hostinger.
+The API has been tested against Supabase PostgreSQL from the local terminal. The Docker Compose API still uses SQLite; its Supabase connection has not been configured yet. Automated tests have not yet been connected to the separate PostgreSQL test database.
 
-## Aviso
-O AeroOps é um projeto educacional e analítico. Seus dados não devem ser usados como única fonte para decisões reais de voo, navegação ou segurança operacional.
+## Goal
 
-# Indicadores do produto
-Total de aeroportos cadastrados.
-Total de consultas de aeroportos.
-Total de aeroportos criados.
-Total de aeroportos excluídos.
-Total de erros de validação.
-Total de acessos ao dashboard.
-Total de países representados.
-Data da última atualização dos dados.
+Build a web dashboard for consulting, visualizing, and analyzing public aviation data worldwide without requiring paid data APIs.
 
-# Métricas de negócio do AeroOps
+The planned capabilities include airport and runway information, aircraft data imports, historical positions and trajectories, maps, charts, indicators by country and airport, and periodic data updates.
 
-Aeroportos cadastrados
-Mede a quantidade total de aeroportos armazenados no sistema.
-Atualização: sempre que um aeroporto for cadastrado ou excluído.
+## Current architecture
 
-Consultas de aeroportos
-Mede quantas vezes a lista de aeroportos foi consultada.
-Atualização: a cada requisição GET /airports.
+```text
+Browser
+├── Frontend served locally on port 5500
+└── Nginx on localhost:8080
+    └── FastAPI on port 8000
+        └── SQLite in a persistent Docker volume
+```
+The backend can also connect to Supabase PostgreSQL when DATABASE_URL is set in its environment. Without DATABASE_URL, it uses SQLite.
 
-Aeroportos criados
-Mede a quantidade total de aeroportos cadastrados durante um período.
-Atualização: a cada requisição POST /airports.
+## API
 
-Aeroportos excluídos
-Mede a quantidade total de aeroportos excluídos durante um período.
-Atualização: a cada requisição DELETE /airports/{id}.
+- GET / — confirms that the API is running.
+- GET /health — checks the API.
+- GET /health/database — checks the database connection.
+- GET /airports — lists airports.
+- POST /airports — creates an airport.
+- DELETE /airports/{airport_id} — deletes an airport.
 
-Erros de validação
-Mede quantas requisições foram rejeitadas por dados inválidos.
-Atualização: a cada resposta HTTP 422.
+## Data sources to evaluate
 
-Países representados
-Mede quantos países diferentes possuem aeroportos cadastrados.
-Atualização: após alterações nos aeroportos.
+- OurAirports.
+- OpenSky Network, within its free-use limits.
+- Open-Meteo.
+- Other public sources compatible with the project.
+These sources are part of the plan; they have not yet been integrated.
+
+## Product indicators
+
+- Total airports stored.
+- Airport list requests.
+- Airports created and deleted.
+- Validation errors.
+- Dashboard visits.
+- Countries represented.
+- Date of the latest data update.
+These indicators describe the product measurement plan. Their implementation and reporting will evolve with the application.
+
+## Planned infrastructure
+
+- A production database separate from development and testing.
+- Deployment on a Hostinger VPS with Ubuntu and Docker Compose.
+- A public domain, DNS, HTTPS, and firewall rules.
+- External backups, monitoring, and recovery procedures.
+- Possible migration to AWS as the project grows.
+
+## Scope and limitations
+
+AeroOps is an educational and analytical project. It is not an aircraft control system, a certified aviation safety system, or a substitute for official flight information. Its data must not be used as the sole basis for real-world flight, navigation, or operational safety decisions.
+
+Real-time aircraft tracking and paid data APIs are not requirements for the initial version. Apart from the planned VPS, the project aims to use free software and data sources.

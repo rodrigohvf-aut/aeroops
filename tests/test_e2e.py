@@ -9,8 +9,8 @@ def test_create_airport_in_browser():
         page.goto("http://127.0.0.1:5500/index.html")
 
         page.fill("#ident", "E2E01")
-        page.fill("#name", "Aeroporto E2E")
-        page.fill("#country", "Brasil")
+        page.fill("#name", "E2E Airport")
+        page.fill("#country", "Brazil")
         page.fill("#latitude", "-23.5")
         page.fill("#longitude", "-46.6")
 
@@ -19,6 +19,6 @@ def test_create_airport_in_browser():
 
         page.wait_for_timeout(500)
 
-        assert "Aeroporto E2E" in page.locator("#airport-list").inner_text()
+        assert "E2E Airport" in page.locator("#airport-list").inner_text()
 
         browser.close()

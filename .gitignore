@@ -1,19 +1,19 @@
-# Ambiente virtual
+# Virtual environment
 .venv/
 venv/
 env/
 
-# Cache do Python
+# Python cache
 __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Variáveis de ambiente
+# Environment variables
 .env
 .env.*
 !.env.example
 
-# Banco de dados local
+# Local database
 *.db
 *.sqlite
 *.sqlite3
@@ -22,7 +22,7 @@ __pycache__/
 *.log
 logs/
 
-# Cobertura de testes
+# Test coverage
 .coverage
 htmlcov/
 coverage.xml
@@ -39,10 +39,10 @@ docker-data/
 # VS Code
 .vscode/
 
-# Sistema operacional
+# Operating system
 .DS_Store
 Thumbs.db
 
-# Arquivos temporários
+# Temporary files
 *.tmp
 *.bak

@@ -1,4 +1,4 @@
-# 1. Importar as ferramentas necessárias
+# 1. Import the required tools
 import logging
 import time
 
@@ -8,15 +8,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import create_tables, get_connection
 from .routes import router
 
-# 2. Configurar os logs
+# 2. Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 request_counts = {}
 response_times = {}
 
-# 3. Criar a aplicação FastAPI
+# 3. Create the FastAPI application
 app = FastAPI(title="AeroOps")
+
 
 @app.middleware("http")
 async def log_response_time(request, call_next):
@@ -25,14 +26,14 @@ async def log_response_time(request, call_next):
     response = await call_next(request)
 
     elapsed_time = time.perf_counter() - start_time
-    
+
     request_key = f"{request.method} {request.url.path}"
-    request_counts[request_key] = request_counts.get(request_key, 0) + 1    
+    request_counts[request_key] = request_counts.get(request_key, 0) + 1
     response_times.setdefault(request_key, []).append(elapsed_time)
 
     log_message = (
-    f"{request.method} {request.url.path} - "
-    f"{response.status_code} - {elapsed_time:.4f} segundos"
+        f"{request.method} {request.url.path} - "
+        f"{response.status_code} - {elapsed_time:.4f} seconds"
     )
 
     if response.status_code >= 400:
@@ -42,7 +43,8 @@ async def log_response_time(request, call_next):
 
     return response
 
-# 4. Configurar a comunicação com o front-end
+
+# 4. Configure communication with the frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,32 +53,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# 5. Preparar o banco de dados
+# 5. Prepare the database
 create_tables()
 
+# 6. Log successful startup
+logger.info("AeroOps started successfully")
 
-# 6. Registrar que a aplicação foi iniciada
-logger.info("AeroOps iniciado com sucesso")
-
-
-# 7. Conectar as rotas à aplicação
+# 7. Include the API routes
 app.include_router(router)
 
 
-# 8. Definir a rota principal
+# 8. Define the root route
 @app.get("/")
 def read_root():
-    return {"message": "AeroOps API funcionando"}
+    return {"message": "AeroOps API is running"}
 
 
-# 9. Definir a rota de saúde da API
+# 9. Define the API health route
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 
-# 10. Definir a rota de saúde do banco
+# 10. Define the database health route
 @app.get("/health/database")
 def database_health_check():
     connection = get_connection()

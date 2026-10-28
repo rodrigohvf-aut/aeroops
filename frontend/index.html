@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -7,36 +7,34 @@
     <title>AeroOps</title>
     <link rel="stylesheet" href="style.css">
 </head>
-    
+
 <body>
     <h1>AeroOps</h1>
-    <p>Dashboard mundial de análise aeronáutica.</p>
+    <p>Global aviation analytics dashboard.</p>
 
     <section id="technical-panel">
-        <h2>Painel técnico</h2>
-
-        <p>API: <span id="api-status">Verificando...</span></p>
-        <p>Banco de dados: <span id="database-status">Verificando...</span></p>
-        <p>Última verificação: <span id="last-check">Aguardando...</span></p>
+        <h2>Technical status</h2>
+        <p>API: <span id="api-status">Checking...</span></p>
+        <p>Database: <span id="database-status">Checking...</span></p>
+        <p>Last check: <span id="last-check">Waiting...</span></p>
     </section>
 
     <section id="product-panel">
-    <h2>Painel do produto</h2>
-
-    <p>Total de aeroportos: <span id="airport-total">Calculando...</span></p>
+        <h2>Product overview</h2>
+        <p>Total airports: <span id="airport-total">Calculating...</span></p>
     </section>
 
-    <h2>Aeroportos cadastrados</h2>
+    <h2>Registered airports</h2>
     <ul id="airport-list"></ul>
 
     <form id="airport-form">
-        <label for="ident">Código ICAO</label>
+        <label for="ident">ICAO code</label>
         <input id="ident" name="ident" required>
 
-        <label for="name">Nome do aeroporto</label>
+        <label for="name">Airport name</label>
         <input id="name" name="name" required>
 
-        <label for="country">País</label>
+        <label for="country">Country</label>
         <input id="country" name="country" required>
 
         <label for="latitude">Latitude</label>
@@ -45,8 +43,9 @@
         <label for="longitude">Longitude</label>
         <input id="longitude" name="longitude" type="number" step="any" required>
 
-        <button type="submit">Cadastrar aeroporto</button>
+        <button type="submit">Add airport</button>
     </form>
+
     <script src="app.js"></script>
 </body>
 

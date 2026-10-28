@@ -10,3 +10,5 @@ DATABASE_PATH = os.getenv(
     str(PROJECT_ROOT / "aeroops.db"),
 )
 API_ENV = os.getenv("API_ENV", "development")
+
+DATABASE_URL = os.getenv("DATABASE_URL")

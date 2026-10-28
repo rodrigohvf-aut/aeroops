@@ -19,6 +19,6 @@ def remove_airport(airport_id: int):
     deleted = delete_airport(airport_id)
 
     if not deleted:
-        raise HTTPException(status_code=404, detail="Aeroporto não encontrado")
+        raise HTTPException(status_code=404, detail="Airport not found")
 
-    return {"message": "Aeroporto removido com sucesso"}
+    return {"message": "Airport deleted successfully"}
