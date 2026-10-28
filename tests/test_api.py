@@ -23,7 +23,12 @@ def test_create_airport():
     )
 
     assert response.status_code == 200
-    assert response.json()["ident"] == "TEST"
+
+    airport = response.json()
+    try:
+        assert airport["ident"] == "TEST"
+    finally:
+        client.delete(f"/airports/{airport['id']}")
 
 def test_create_airport_without_country():
     response = client.post(

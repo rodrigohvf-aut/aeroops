@@ -6,6 +6,7 @@ services:
       - "8000"
     environment:
       DATABASE_PATH: /data/aeroops.db
+      DATABASE_URL: ${DATABASE_URL:-}
     volumes:
       - aeroops_data:/data
     restart: unless-stopped
