@@ -30,6 +30,7 @@ def test_create_airport():
     finally:
         client.delete(f"/airports/{airport['id']}")
 
+
 def test_create_airport_without_country():
     response = client.post(
         "/airports",
@@ -63,6 +64,7 @@ def test_delete_airport():
     assert delete_response.status_code == 200
     assert delete_response.json()["message"] == "Airport deleted successfully"
 
+
 def test_database_health_when_connection_fails(monkeypatch):
     def simulated_failure():
         raise ConnectionError("Simulated database failure")
@@ -73,3 +75,47 @@ def test_database_health_when_connection_fails(monkeypatch):
     response = test_client.get("/health/database")
 
     assert response.status_code == 503
+
+
+def test_cors_allows_local_frontend():
+    response = client.options(
+        "/airports",
+        headers={
+            "Origin": "http://127.0.0.1:5500",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "*"
+
+
+def test_delete_airport_that_does_not_exist():
+    response = client.delete("/airports/999999999")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Airport not found"}
+
+
+
+def test_rejects_invalid_coordinates():
+    invalid_coordinates = [
+        (91, 0),
+        (-91, 0),
+        (0, 181),
+        (0, -181),
+    ]
+
+    for latitude, longitude in invalid_coordinates:
+        response = client.post(
+            "/airports",
+            json={
+                "ident": "INVALID",
+                "name": "Invalid Airport",
+                "country": "Brazil",
+                "latitude": latitude,
+                "longitude": longitude,
+            },
+        )
+
+        assert response.status_code == 422
