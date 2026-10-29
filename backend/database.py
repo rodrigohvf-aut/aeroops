@@ -8,7 +8,6 @@ def get_connection():
         return psycopg.connect(
             DATABASE_URL,
             row_factory=dict_row,
-            sslmode="require",
         )
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row

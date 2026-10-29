@@ -27,7 +27,7 @@ services:
     image: postgres:16
     container_name: aeroops-postgres
     environment:
-      POSTGRES_DB: aeroops
+      POSTGRES_DB: aeroops_test
       POSTGRES_USER: aeroops
       POSTGRES_PASSWORD: aeroops_local_dev
     ports:
