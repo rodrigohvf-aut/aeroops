@@ -20,7 +20,7 @@ The current application includes:
 - API and database health endpoints, request logs, and basic measurements.
 - Docker Compose services for the API, Nginx, and local PostgreSQL.
 
-The API has been tested against Supabase PostgreSQL from the local terminal. The Docker Compose API still uses SQLite; its Supabase connection has not been configured yet. Automated tests have not yet been connected to the separate PostgreSQL test database.
+The Docker Compose API is connected to Supabase PostgreSQL; listing, creating, and deleting airports were verified. The separate local PostgreSQL database `aeroops_test` was used in a manual run of eight non-browser tests. The default local test run and browser E2E test use SQLite.
 
 ## Goal
 

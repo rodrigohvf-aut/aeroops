@@ -1,6 +1,7 @@
 # 1. Import the required tools
 import logging
 import time
+from collections import deque
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +30,7 @@ async def log_response_time(request, call_next):
 
     request_key = f"{request.method} {request.url.path}"
     request_counts[request_key] = request_counts.get(request_key, 0) + 1
-    response_times.setdefault(request_key, []).append(elapsed_time)
+    response_times.setdefault(request_key, deque(maxlen=1000)).append(elapsed_time)
 
     log_message = (
         f"{request.method} {request.url.path} - "
