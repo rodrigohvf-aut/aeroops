@@ -62,3 +62,14 @@ def test_delete_airport():
 
     assert delete_response.status_code == 200
     assert delete_response.json()["message"] == "Airport deleted successfully"
+
+def test_database_health_when_connection_fails(monkeypatch):
+    def simulated_failure():
+        raise ConnectionError("Simulated database failure")
+
+    monkeypatch.setattr("backend.main.get_connection", simulated_failure)
+
+    test_client = TestClient(app, raise_server_exceptions=False)
+    response = test_client.get("/health/database")
+
+    assert response.status_code == 503

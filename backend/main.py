@@ -2,7 +2,7 @@
 import logging
 import time
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import create_tables, get_connection
@@ -78,9 +78,18 @@ def health_check():
 # 10. Define the database health route
 @app.get("/health/database")
 def database_health_check():
-    connection = get_connection()
-    connection.execute("SELECT 1")
-    connection.close()
+    try:
+        connection = get_connection()
+        try:
+            connection.execute("SELECT 1")
+        finally:
+            connection.close()
+    except Exception:
+        logger.warning("Database health check failed")
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable",
+        ) from None
 
     return {
         "status": "ok",
