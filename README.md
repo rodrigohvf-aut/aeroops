@@ -24,6 +24,7 @@ The Docker Compose API is connected to Supabase PostgreSQL; listing, creating, a
 
 ## Project structure
 
+```text
 aeroops/
 ├── backend/                              FastAPI application
 │   ├── __init__.py                       Marks backend as a Python package
@@ -76,7 +77,7 @@ aeroops/
 ├── .venv/                                 Local Python environment
 ├── .vscode/                               Local VS Code settings
 └── .git/                                  Git history and repository settings
-
+```
 
 ## Goal
 
