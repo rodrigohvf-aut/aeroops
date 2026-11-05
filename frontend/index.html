@@ -25,7 +25,17 @@
     </section>
 
     <h2>Registered airports</h2>
+    <label for="airport-search">Search airports</label>
+<input
+    id="airport-search"
+    type="search"
+    placeholder="Name, ICAO code, or country"
+>
     <ul id="airport-list"></ul>
+    <section id="airport-details" hidden>
+        <h2>Airport details</h2>
+        <p id="airport-details-content"></p>
+    </section>
 
     <form id="airport-form">
         <label for="ident">ICAO code</label>

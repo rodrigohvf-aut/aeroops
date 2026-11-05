@@ -65,3 +65,10 @@ The local API was tested with `scripts/load_test_pooled.py`, using a shared HTTP
 - Failure type: `ReadTimeout`
 
 Connection reuse did not eliminate failures in this run. The earlier script produced connection refusals; this run produced read timeouts. These results do not isolate whether the limiting factor was the API, the test client, or their shared computer.
+
+10,000 requests, 250 workers: 9,986 succeeded and 14 connections were refused.
+Total time: 34.38 s; successful-request p95: 1.874 s.
+Load client: 10.03 CPU seconds; memory 23.8 → 45.2 MB.
+API: about 37.34 CPU seconds; memory 77.3 → 79.3 MB.
+The API responded to /health afterward. No API error appeared in the inspected logs.
+The cause of the refused connections remains unconfirmed.

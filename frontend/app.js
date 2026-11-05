@@ -1,18 +1,62 @@
 const form = document.getElementById("airport-form");
 const airportList = document.getElementById("airport-list");
+const airportSearch = document.getElementById("airport-search");
+
+let airports = [];
+
+function showAirports() {
+    const search = airportSearch.value.trim().toLowerCase();
+
+    airportList.innerHTML = "";
+
+    airports
+        .filter((airport) =>
+            [airport.ident, airport.name, airport.country].some((value) =>
+                value.toLowerCase().includes(search)
+            )
+        )
+        .forEach((airport) => {
+            const item = document.createElement("li");
+            const text = document.createElement("span");
+            const deleteButton = document.createElement("button");
+
+            text.textContent =
+                `${airport.ident} - ${airport.name} (${airport.country}) `;
+            deleteButton.type = "button";
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", async () => {
+                const confirmed = window.confirm(`Delete ${airport.name}?`);
+                if (!confirmed) return;
+
+                const response = await fetch(
+                    `http://127.0.0.1:8000/airports/${airport.id}`,
+                    { method: "DELETE" }
+                );
+
+                if (!response.ok) {
+                    window.alert("Could not delete the airport.");
+                    return;
+                }
+
+                await loadAirports();
+                await loadProductMetrics();
+            });
+
+            item.appendChild(text);
+            item.appendChild(deleteButton);
+            airportList.appendChild(item);
+        });
+}
 
 async function loadAirports() {
     const response = await fetch("http://127.0.0.1:8000/airports");
     const data = await response.json();
 
-    airportList.innerHTML = "";
-
-    data.airports.forEach((airport) => {
-        const item = document.createElement("li");
-        item.textContent = `${airport.ident} - ${airport.name} (${airport.country})`;
-        airportList.appendChild(item);
-    });
+    airports = data.airports;
+    showAirports();
 }
+
+airportSearch.addEventListener("input", showAirports);
 
 form.addEventListener("submit", async function (event) {
     event.preventDefault();

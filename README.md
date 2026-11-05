@@ -22,6 +22,62 @@ The current application includes:
 
 The Docker Compose API is connected to Supabase PostgreSQL; listing, creating, and deleting airports were verified. The separate local PostgreSQL database `aeroops_test` was used in a manual run of eight non-browser tests. The default local test run and browser E2E test use SQLite.
 
+## Project structure
+
+aeroops/
+├── backend/                              FastAPI application
+│   ├── __init__.py                       Marks backend as a Python package
+│   ├── main.py                           Creates the app, middleware and health routes
+│   ├── routes.py                         Airport API endpoints
+│   ├── models.py                         Airport data validation
+│   ├── services.py                       Airport operations and database queries
+│   ├── database.py                       SQLite or PostgreSQL connection
+│   └── config.py                         Settings read from environment variables
+│
+├── frontend/                             Browser interface
+│   ├── index.html                        Dashboard structure and forms
+│   ├── style.css                         Colours and layout
+│   └── app.js                            API calls and dashboard interactions
+│
+├── tests/                                Automated tests
+│   ├── test_api.py                        API behaviour
+│   ├── test_models.py                     Data validation
+│   ├── test_contract.py                   OpenAPI route contract
+│   ├── test_regression.py                 Existing routes
+│   └── test_e2e.py                        Real-browser workflow
+│
+├── scripts/                              Manual performance tools
+│   ├── load_test.py                       Request load test
+│   └── load_test_pooled.py                Load test with reused connections
+│
+├── supabase/                             Supabase configuration
+│   ├── config.toml                        Local Supabase project settings
+│   └── migrations/
+│       └── 20261023000000_create_airports.sql
+│                                         PostgreSQL airports table migration
+│
+├── nginx/
+│   └── nginx.conf                         Reverse proxy configuration
+├── docs/
+│   ├── aeroops-overview.jpg               Architecture infographic
+│   └── load-test-results.md               Recorded performance results
+├── data/                                  Folder reserved for project data
+│
+├── Dockerfile                             Instructions to build the API image
+├── docker-compose.yml                     Runs the local containers together
+├── requirements.txt                       Python dependencies
+├── .env.example                           Example environment settings
+├── .env                                   Local settings and credentials
+├── .gitignore                             Files Git should ignore
+├── aeroops.db                             Local SQLite database
+├── aeroops.code-workspace                 VS Code workspace settings
+├── README.md                              Project overview
+│
+├── .venv/                                 Local Python environment
+├── .vscode/                               Local VS Code settings
+└── .git/                                  Git history and repository settings
+
+
 ## Goal
 
 Build a web dashboard for consulting, visualizing, and analyzing public aviation data worldwide without requiring paid data APIs.

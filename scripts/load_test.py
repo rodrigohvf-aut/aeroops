@@ -3,6 +3,7 @@ from time import perf_counter
 from urllib.request import urlopen
 import os
 from collections import Counter
+import psutil
 
 URL = "http://127.0.0.1:8000/airports"
 REQUESTS = int(os.getenv("LOAD_REQUESTS", "100"))
@@ -26,6 +27,9 @@ def make_request(_):
 
 def main():
     start = perf_counter()
+    client_process = psutil.Process()
+    cpu_before = client_process.cpu_times()
+    memory_before = client_process.memory_info().rss / (1024 * 1024)
 
     with ThreadPoolExecutor(max_workers=WORKERS) as executor:
         results = list(executor.map(make_request, range(REQUESTS)))
@@ -52,6 +56,15 @@ def main():
         )
 
     print(f"Failure types: {dict(failure_types)}")
+    cpu_after = client_process.cpu_times()
+    memory_after = client_process.memory_info().rss / (1024 * 1024)
+    cpu_used = (
+        cpu_after.user + cpu_after.system
+        - cpu_before.user - cpu_before.system
+    )
+
+    print(f"Load client CPU used: {cpu_used:.2f} seconds")
+    print(f"Load client memory: {memory_before:.1f} -> {memory_after:.1f} MB")
 
 if __name__ == "__main__":
     main()
