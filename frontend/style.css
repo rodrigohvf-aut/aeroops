@@ -13,3 +13,10 @@ h1 {
 p {
     color: #cbd5e1;
 }
+
+#airport-map {
+    height: 400px;
+    width: 100%;
+    margin: 16px 0 32px;
+    background-color: #1e293b;
+}

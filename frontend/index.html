@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroOps</title>
     <link rel="stylesheet" href="style.css">
+    <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+    >
 </head>
 
 <body>
@@ -26,15 +32,21 @@
 
     <h2>Registered airports</h2>
     <label for="airport-search">Search airports</label>
-<input
-    id="airport-search"
-    type="search"
-    placeholder="Name, ICAO code, or country"
->
+    <input
+        id="airport-search"
+        type="search"
+        placeholder="Name, ICAO code, or country"
+    >
     <ul id="airport-list"></ul>
+
     <section id="airport-details" hidden>
         <h2>Airport details</h2>
         <p id="airport-details-content"></p>
+    </section>
+
+    <section>
+        <h2>Airport map</h2>
+        <div id="airport-map"></div>
     </section>
 
     <form id="airport-form">
@@ -55,6 +67,12 @@
 
         <button type="submit">Add airport</button>
     </form>
+
+    <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+    ></script>
 
     <script src="app.js"></script>
 </body>

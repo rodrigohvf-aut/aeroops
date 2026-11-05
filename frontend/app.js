@@ -1,6 +1,33 @@
 const form = document.getElementById("airport-form");
 const airportList = document.getElementById("airport-list");
 const airportSearch = document.getElementById("airport-search");
+const airportMap = L.map("airport-map").setView([20, 0], 2);
+
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+}).addTo(airportMap);
+
+const airportMarkers = L.layerGroup().addTo(airportMap);
+
+function showAirportMarkers() {
+    airportMarkers.clearLayers();
+
+    airports.forEach((airport) => {
+        const latitude = Number(airport.latitude);
+        const longitude = Number(airport.longitude);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+        const popup = document.createElement("span");
+        popup.textContent =
+            `${airport.ident} — ${airport.name} (${airport.country})`;
+
+        L.marker([latitude, longitude])
+            .bindPopup(popup)
+            .addTo(airportMarkers);
+    });
+}
 
 let airports = [];
 
@@ -22,8 +49,22 @@ function showAirports() {
 
             text.textContent =
                 `${airport.ident} - ${airport.name} (${airport.country}) `;
+            text.style.cursor = "pointer";
+
+            text.addEventListener("click", () => {
+                const details = document.getElementById("airport-details");
+                const content = document.getElementById("airport-details-content");
+
+                content.textContent =
+                    `${airport.ident} — ${airport.name} — ${airport.country} | ` +
+                    `Latitude: ${airport.latitude}, Longitude: ${airport.longitude}`;
+
+                details.hidden = false;
+            });
+
             deleteButton.type = "button";
             deleteButton.textContent = "Delete";
+
             deleteButton.addEventListener("click", async () => {
                 const confirmed = window.confirm(`Delete ${airport.name}?`);
                 if (!confirmed) return;
@@ -54,6 +95,7 @@ async function loadAirports() {
 
     airports = data.airports;
     showAirports();
+    showAirportMarkers();
 }
 
 airportSearch.addEventListener("input", showAirports);
