@@ -51,15 +51,59 @@ function showAirports() {
                 `${airport.ident} - ${airport.name} (${airport.country}) `;
             text.style.cursor = "pointer";
 
-            text.addEventListener("click", () => {
+            text.addEventListener("click", async () => {
                 const details = document.getElementById("airport-details");
                 const content = document.getElementById("airport-details-content");
+                const runwayList = document.getElementById("airport-runways");
 
                 content.textContent =
                     `${airport.ident} — ${airport.name} — ${airport.country} | ` +
                     `Latitude: ${airport.latitude}, Longitude: ${airport.longitude}`;
 
                 details.hidden = false;
+                runwayList.replaceChildren();
+
+                airportMap.setView(
+                    [Number(airport.latitude), Number(airport.longitude)],
+                    8
+                );
+                document.getElementById("airport-map").scrollIntoView({
+                    behavior: "smooth",
+                });
+
+                try {
+                    const response = await fetch(
+                        `http://127.0.0.1:8000/airports/${encodeURIComponent(airport.ident)}/runways`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Could not load runways");
+                    }
+
+                    const data = await response.json();
+
+                    if (data.runways.length === 0) {
+                        const item = document.createElement("li");
+                        item.textContent = "No runways found.";
+                        runwayList.appendChild(item);
+                    }
+
+                    data.runways.forEach((runway) => {
+                        const item = document.createElement("li");
+                        item.textContent =
+                            `${runway.le_ident ?? "?"}/${runway.he_ident ?? "?"} — ` +
+                            `Length: ${runway.length_ft ?? "Unknown"} ft — ` +
+                            `Width: ${runway.width_ft ?? "Unknown"} ft — ` +
+                            `Surface: ${runway.surface ?? "Unknown"} — ` +
+                            `Lighted: ${runway.lighted === null ? "Unknown" : runway.lighted ? "Yes" : "No"} — ` +
+                            `Closed: ${runway.closed === null ? "Unknown" : runway.closed ? "Yes" : "No"}`;
+                        runwayList.appendChild(item);
+                    });
+                } catch (error) {
+                    const item = document.createElement("li");
+                    item.textContent = "Could not load runways.";
+                    runwayList.appendChild(item);
+                }
             });
 
             deleteButton.type = "button";

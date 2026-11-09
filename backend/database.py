@@ -32,5 +32,21 @@ def create_tables():
         """
     )
 
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS runways (
+            id INTEGER PRIMARY KEY,
+            airport_ident TEXT NOT NULL,
+            le_ident TEXT,
+            he_ident TEXT,
+            length_ft INTEGER,
+            width_ft INTEGER,
+            surface TEXT,
+            lighted INTEGER,
+            closed INTEGER
+        )
+        """
+    )
+
     connection.commit()
     connection.close()

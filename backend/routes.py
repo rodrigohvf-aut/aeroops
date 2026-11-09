@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from .models import Airport
-from .services import create_airport, delete_airport, list_airports
+from .services import create_airport, delete_airport, list_airports, list_runways
 
 router = APIRouter()
 
@@ -22,3 +22,8 @@ def remove_airport(airport_id: int):
         raise HTTPException(status_code=404, detail="Airport not found")
 
     return {"message": "Airport deleted successfully"}
+
+
+@router.get("/airports/{airport_ident}/runways")
+def get_airport_runways(airport_ident: str):
+    return {"runways": list_runways(airport_ident)}

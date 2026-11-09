@@ -73,3 +73,25 @@ def delete_airport(airport_id):
     connection.close()
 
     return deleted
+
+def list_runways(airport_ident: str):
+    connection = get_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        rows = connection.execute(
+            f"""
+            SELECT id, airport_ident, le_ident, he_ident,
+                   length_ft, width_ft, surface, lighted, closed
+            FROM runways
+            WHERE airport_ident = {placeholder}
+            ORDER BY le_ident
+            """,
+            (airport_ident,),
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+
+    finally:
+        connection.close()
