@@ -144,25 +144,6 @@ Database configuration is managed through environment variables, allowing the ap
 - **Docker Compose:** Defines and manages the application containers and local database service.
 - **Docker volumes:** Provide persistent storage for SQLite and the local PostgreSQL service.
 
-## Architectural Decisions
-
-### ADR-001 — Python and FastAPI
-
-**Decision:** Use Python as the primary programming language and FastAPI as the backend framework.
-
-**Context:** AeroOps was initially created as an educational project to deepen my knowledge of Python through the development of a complete web application.
-
-**Rationale:**
-- Python is free, open-source, and widely used in software development.
-- Building a complete application provides practical experience with APIs, data validation, database integration, and backend architecture.
-- FastAPI provides a framework for developing REST APIs in Python, including automatic OpenAPI documentation.
-
-**Trade-offs:**
-- The decision prioritized learning and practical experimentation rather than a formal comparison of backend technologies.
-- Other frameworks, such as Django or Express, were not evaluated through benchmarks.
-
-**Status:** Implemented.
-
 ## API
 
 - GET / — confirms that the API is running.
@@ -204,3 +185,43 @@ These indicators describe the product measurement plan. Their implementation and
 AeroOps is an educational and analytical project. It is not an aircraft control system, a certified aviation safety system, or a substitute for official flight information. Its data must not be used as the sole basis for real-world flight, navigation, or operational safety decisions.
 
 Real-time aircraft tracking and paid data APIs are not requirements for the initial version. Apart from the planned VPS, the project aims to use free software and data sources.
+
+## Architectural Decisions
+
+### ADR-001 — Python and FastAPI
+
+**Decision:** Use Python as the primary programming language and FastAPI as the backend framework.
+
+**Context:** AeroOps was initially created as an educational project to deepen my knowledge of Python through the development of a complete web application.
+
+**Rationale:**
+- Python is free, open-source, and widely used in software development.
+- Building a complete application provides practical experience with APIs, data validation, database integration, and backend architecture.
+- FastAPI provides a framework for developing REST APIs in Python, including automatic OpenAPI documentation.
+
+**Trade-offs:**
+- The decision prioritized learning and practical experimentation rather than a formal comparison of backend technologies.
+- Other frameworks, such as Django or Express, were not evaluated through benchmarks.
+
+**Status:** Implemented.
+
+### ADR-002 — Progressive Database Architecture
+
+**Decision:** Adopt a progressive database strategy, starting with SQLite, moving to local PostgreSQL, and then connecting the application to Supabase PostgreSQL.
+
+**Context:** AeroOps is an educational project designed to explore the software development lifecycle, from simple local development to more advanced infrastructure and cloud environments.
+
+**Rationale:**
+- **SQLite:** Initially used to develop and test the API locally with minimal configuration.
+- **PostgreSQL (Docker):** Introduced to gain experience with a more robust relational database in a containerized environment.
+- **PostgreSQL (Supabase):** Adopted to explore remote database connectivity and cloud-hosted database services.
+- **AWS (Planned):** Future infrastructure evolution to explore cloud deployment, managed services, security, and scalability.
+
+**Trade-offs:**
+- Supporting SQLite and PostgreSQL introduces additional configuration and testing requirements.
+- Differences between database engines may affect application behavior and compatibility.
+- Cloud-hosted databases introduce network dependencies and additional security considerations.
+- This progression prioritizes learning and architectural experimentation rather than immediate production optimization.
+
+**Status:** SQLite, local PostgreSQL, and Supabase PostgreSQL configurations implemented. AWS deployment planned.
+
