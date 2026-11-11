@@ -225,3 +225,22 @@ Real-time aircraft tracking and paid data APIs are not requirements for the init
 
 **Status:** SQLite, local PostgreSQL, and Supabase PostgreSQL configurations implemented. AWS deployment planned.
 
+### ADR-003 — Docker, Docker Compose, and Nginx
+
+**Decision:** Use Docker and Docker Compose to containerize the application and Nginx as a reverse proxy.
+
+**Context:** AeroOps was developed as an educational project to gain practical experience with containerization and prepare the application for future deployment on VPS and cloud infrastructure, including AWS.
+
+**Rationale:**
+- **Docker:** Learn how to package and execute applications in isolated, reproducible environments.
+- **Docker Compose:** Understand how to configure and orchestrate multiple services locally.
+- **Nginx:** Explore reverse proxy architecture and HTTP request routing between infrastructure components.
+- **Future Deployment:** Establish a foundation for deploying the application beyond the local development environment.
+
+**Trade-offs:**
+- Containerization introduces additional infrastructure configuration and maintenance.
+- Nginx adds another component to manage, even when a simple application could run without it.
+- Docker Compose is suitable for local development and relatively simple deployments but does not provide all the orchestration capabilities required by complex distributed systems.
+
+**Status:** Implemented locally. VPS and AWS deployments planned.
+
