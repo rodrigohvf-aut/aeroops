@@ -21,7 +21,15 @@ let airports = [];
 function showAirportMarkers() {
     airportMarkers.clearLayers();
 
-    airports.forEach((airport) => {
+    const search = airportSearch.value.trim().toLowerCase();
+
+    const matchingAirports = airports.filter((airport) =>
+        [airport.ident, airport.name, airport.country].some((value) =>
+            value.toLowerCase().includes(search)
+        )
+    );
+
+    matchingAirports.forEach((airport) => {
         const latitude = Number(airport.latitude);
         const longitude = Number(airport.longitude);
 
@@ -35,8 +43,17 @@ function showAirportMarkers() {
 
         L.marker([latitude, longitude])
             .bindPopup(popup)
+            .on("click", () => selectAirport(airport))
             .addTo(airportMarkers);
     });
+
+    if (search && matchingAirports.length === 1) {
+        const airport = matchingAirports[0];
+        airportMap.setView(
+            [Number(airport.latitude), Number(airport.longitude)],
+            12
+        );
+    }
 }
 
 function drawRunways(runways) {
@@ -240,7 +257,10 @@ async function loadAirports() {
     showAirportMarkers();
 }
 
-airportSearch.addEventListener("input", showAirports);
+airportSearch.addEventListener("input", () => {
+    showAirports();
+    showAirportMarkers();
+});
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
