@@ -1,8 +1,32 @@
 # AeroOps
 
-![AeroOps technical overview](docs/aeroops-overview.jpg)
+**Aviation Data Platform | Backend Engineering & Software Architecture**
 
-AeroOps is an educational platform for exploring and analyzing global aviation data. The project is being developed step by step, starting locally and preparing for deployment on a VPS and possible expansion to AWS.
+AeroOps is a web-based aviation data platform designed to centralize, manage, and eventually analyze publicly available aviation information.
+
+The project explores the design and development of a complete software solution, covering backend architecture, REST APIs, database integration, frontend development, automated testing, containerization, and infrastructure.
+
+### Project Objectives
+
+- Build a modular and maintainable aviation data platform.
+- Design REST APIs using Python and FastAPI.
+- Implement data persistence with SQLite and PostgreSQL.
+- Integrate frontend, backend, and database components.
+- Apply automated testing and API validation.
+- Explore containerization, observability, and deployment practices.
+- Evaluate architectural decisions, technical trade-offs, and scalability requirements.
+
+### Current Development Stage
+
+**Status: Active Development — Functional MVP**
+
+The current version supports airport registration, listing, and deletion through a FastAPI backend and a browser-based interface.
+
+The project also includes database integration, automated tests, API documentation, health checks, and Docker Compose configuration.
+
+Future development will focus on aviation data integration, analytical dashboards, infrastructure deployment, and additional architectural improvements.
+
+![AeroOps technical overview](docs/aeroops-overview.jpg)
 
 ## Current status
 
