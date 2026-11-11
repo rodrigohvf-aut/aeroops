@@ -111,14 +111,38 @@ The planned capabilities include airport and runway information, aircraft data i
 
 ## Current architecture
 
+AeroOps uses a containerized architecture with Nginx as a reverse proxy, FastAPI as the backend application, and PostgreSQL hosted on Supabase as the configured primary database.
+
 ```text
 Browser
-├── Frontend served locally on port 5500
-└── Nginx on localhost:8080
-    └── FastAPI on port 8000
-        └── SQLite in a persistent Docker volume
+   |
+   v
+Nginx (localhost:8080)
+   |
+   v
+FastAPI (Docker container, port 8000)
+   |
+   v
+Supabase PostgreSQL
 ```
-The backend can also connect to Supabase PostgreSQL when DATABASE_URL is set in its environment. Without DATABASE_URL, it uses SQLite.
+
+### Database configuration
+
+The application supports different database configurations:
+
+- **Supabase PostgreSQL:** Primary database when `DATABASE_URL` is configured.
+- **SQLite:** Local fallback database when `DATABASE_URL` is not provided.
+- **Local PostgreSQL:** Separate Docker service (`aeroops_test`) intended for database testing.
+
+Database configuration is managed through environment variables, allowing the application to switch between local development and PostgreSQL environments without changing the application code.
+
+### Infrastructure components
+
+- **Nginx:** Reverse proxy that forwards HTTP requests to the FastAPI backend.
+- **FastAPI:** Handles API requests, data validation, and application operations.
+- **Supabase:** Hosts the remote PostgreSQL database.
+- **Docker Compose:** Defines and manages the application containers and local database service.
+- **Docker volumes:** Provide persistent storage for SQLite and the local PostgreSQL service.
 
 ## API
 
