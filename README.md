@@ -144,6 +144,25 @@ Database configuration is managed through environment variables, allowing the ap
 - **Docker Compose:** Defines and manages the application containers and local database service.
 - **Docker volumes:** Provide persistent storage for SQLite and the local PostgreSQL service.
 
+## Architectural Decisions
+
+### ADR-001 — Python and FastAPI
+
+**Decision:** Use Python as the primary programming language and FastAPI as the backend framework.
+
+**Context:** AeroOps was initially created as an educational project to deepen my knowledge of Python through the development of a complete web application.
+
+**Rationale:**
+- Python is free, open-source, and widely used in software development.
+- Building a complete application provides practical experience with APIs, data validation, database integration, and backend architecture.
+- FastAPI provides a framework for developing REST APIs in Python, including automatic OpenAPI documentation.
+
+**Trade-offs:**
+- The decision prioritized learning and practical experimentation rather than a formal comparison of backend technologies.
+- Other frameworks, such as Django or Express, were not evaluated through benchmarks.
+
+**Status:** Implemented.
+
 ## API
 
 - GET / — confirms that the API is running.
