@@ -14,10 +14,25 @@ def optional_int(value):
 
 
 def main():
-    if DATABASE_URL:
-        raise SystemExit("This import is for local SQLite only.")
-
     connection = get_connection()
+
+    if DATABASE_URL:
+        insert_sql = """
+            INSERT INTO runways (
+                id, airport_ident, le_ident, he_ident,
+                length_ft, width_ft, surface, lighted, closed
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+        """
+    else:
+        insert_sql = """
+            INSERT OR IGNORE INTO runways (
+                id, airport_ident, le_ident, he_ident,
+                length_ft, width_ft, surface, lighted, closed
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
 
     try:
         airport_codes = {
@@ -49,20 +64,13 @@ def main():
                 except ValueError:
                     continue
 
-                cursor = connection.execute(
-                    """
-                    INSERT OR IGNORE INTO runways (
-                        id, airport_ident, le_ident, he_ident,
-                        length_ft, width_ft, surface, lighted, closed
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    values,
-                )
+                cursor = connection.execute(insert_sql, values)
                 imported += cursor.rowcount
 
         connection.commit()
-        print(f"Imported {imported} runways into local SQLite.")
+
+        database_name = "PostgreSQL" if DATABASE_URL else "local SQLite"
+        print(f"Imported {imported} runways into {database_name}.")
 
     finally:
         connection.close()

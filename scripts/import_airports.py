@@ -10,10 +10,10 @@ MAX_AIRPORTS = 80
 
 
 def main():
-    if DATABASE_URL:
-        raise SystemExit("This first import is for local SQLite only.")
-
     connection = get_connection()
+
+    placeholder = "%s" if DATABASE_URL else "?"
+    placeholders = ", ".join([placeholder] * 5)
 
     try:
         existing = connection.execute(
@@ -22,10 +22,13 @@ def main():
 
         known_codes = {row["ident"] for row in existing}
         known_countries = {row["country"] for row in existing}
+
         sample_countries = {
-            country for country in known_countries
+            country
+            for country in known_countries
             if len(country) == 2 and country.isupper()
         }
+
         remaining = max(0, MAX_AIRPORTS - len(sample_countries))
         imported = 0
 
@@ -60,10 +63,10 @@ def main():
                     continue
 
                 connection.execute(
-                    """
+                    f"""
                     INSERT INTO airports
                         (ident, name, country, latitude, longitude)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES ({placeholders})
                     """,
                     (code, airport["name"], country, latitude, longitude),
                 )
@@ -76,7 +79,9 @@ def main():
                     break
 
         connection.commit()
-        print(f"Imported {imported} airports into local SQLite.")
+
+        database_name = "PostgreSQL" if DATABASE_URL else "local SQLite"
+        print(f"Imported {imported} airports into {database_name}.")
 
     finally:
         connection.close()

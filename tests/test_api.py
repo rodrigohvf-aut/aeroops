@@ -1,3 +1,4 @@
+import sqlite3
 from fastapi.testclient import TestClient
 from backend.main import app
 client = TestClient(app)
@@ -119,3 +120,52 @@ def test_rejects_invalid_coordinates():
         )
 
         assert response.status_code == 422
+
+def test_get_airport_runways(monkeypatch, tmp_path):
+    from backend import services
+
+    database_path = tmp_path / "runways_test.db"
+
+    connection = sqlite3.connect(database_path)
+    connection.execute(
+        """
+        CREATE TABLE runways (
+            id INTEGER PRIMARY KEY,
+            airport_ident TEXT,
+            le_ident TEXT,
+            he_ident TEXT,
+            length_ft INTEGER,
+            width_ft INTEGER,
+            surface TEXT,
+            lighted INTEGER,
+            closed INTEGER
+        )
+        """
+    )
+    connection.executemany(
+        """
+        INSERT INTO runways
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (1, "DAAE", "08", "26", 7874, 148, "ASP", 1, 0),
+            (2, "EGLL", "09L", "27R", 12799, 164, "ASP", 1, 0),
+        ],
+    )
+    connection.commit()
+    connection.close()
+
+    def test_connection():
+        connection = sqlite3.connect(database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    monkeypatch.setattr(services, "get_connection", test_connection)
+    monkeypatch.setattr(services, "DATABASE_URL", None)
+
+    response = client.get("/airports/DAAE/runways")
+
+    assert response.status_code == 200
+    assert len(response.json()["runways"]) == 1
+    assert response.json()["runways"][0]["le_ident"] == "08"
+    assert response.json()["runways"][0]["airport_ident"] == "DAAE"
