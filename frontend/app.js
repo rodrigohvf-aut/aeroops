@@ -1,14 +1,22 @@
+const API_URL = "http://127.0.0.1:8000";
+
 const form = document.getElementById("airport-form");
 const airportList = document.getElementById("airport-list");
 const airportSearch = document.getElementById("airport-search");
+const airportMapElement = document.getElementById("airport-map");
+
 const airportMap = L.map("airport-map").setView([20, 0], 2);
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
 }).addTo(airportMap);
 
 const airportMarkers = L.layerGroup().addTo(airportMap);
+const runwayLines = L.featureGroup().addTo(airportMap);
+
+let airports = [];
 
 function showAirportMarkers() {
     airportMarkers.clearLayers();
@@ -17,7 +25,9 @@ function showAirportMarkers() {
         const latitude = Number(airport.latitude);
         const longitude = Number(airport.longitude);
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return;
+        }
 
         const popup = document.createElement("span");
         popup.textContent =
@@ -29,12 +39,133 @@ function showAirportMarkers() {
     });
 }
 
-let airports = [];
+function drawRunways(runways) {
+    runwayLines.clearLayers();
+
+    runways.forEach((runway) => {
+        const values = [
+            runway.le_latitude_deg,
+            runway.le_longitude_deg,
+            runway.he_latitude_deg,
+            runway.he_longitude_deg,
+        ];
+
+        if (
+            values.some(
+                (value) =>
+                    value === null ||
+                    value === undefined ||
+                    !Number.isFinite(Number(value))
+            )
+        ) {
+            return;
+        }
+
+        const ends = [
+            [
+                Number(runway.le_latitude_deg),
+                Number(runway.le_longitude_deg),
+            ],
+            [
+                Number(runway.he_latitude_deg),
+                Number(runway.he_longitude_deg),
+            ],
+        ];
+
+        L.polyline(ends, {
+            color: "#ef4444",
+            weight: 6,
+        })
+            .bindPopup(
+                `Runway ${runway.le_ident ?? "?"}/${runway.he_ident ?? "?"}`
+            )
+            .addTo(runwayLines);
+    });
+
+    if (runwayLines.getLayers().length > 0) {
+        airportMap.fitBounds(runwayLines.getBounds(), {
+            padding: [50, 50],
+            maxZoom: 15,
+        });
+    }
+}
+
+async function selectAirport(airport) {
+    const details = document.getElementById("airport-details");
+    const content = document.getElementById("airport-details-content");
+    const runwayList = document.getElementById("airport-runways");
+
+    content.textContent =
+        `${airport.ident} — ${airport.name} — ${airport.country} | ` +
+        `Latitude: ${airport.latitude}, Longitude: ${airport.longitude}`;
+
+    details.hidden = false;
+    runwayList.replaceChildren();
+    runwayLines.clearLayers();
+
+    airportMap.setView(
+        [Number(airport.latitude), Number(airport.longitude)],
+        8
+    );
+
+    airportMapElement.scrollIntoView({ behavior: "smooth" });
+
+    try {
+        const response = await fetch(
+            `${API_URL}/airports/${encodeURIComponent(airport.ident)}/runways`
+        );
+
+        if (!response.ok) {
+            throw new Error("Could not load runways");
+        }
+
+        const data = await response.json();
+
+        if (data.runways.length === 0) {
+            const item = document.createElement("li");
+            item.textContent = "No runways found.";
+            runwayList.appendChild(item);
+        }
+
+        data.runways.forEach((runway) => {
+            const item = document.createElement("li");
+
+            item.textContent =
+                `${runway.le_ident ?? "?"}/${runway.he_ident ?? "?"} — ` +
+                `Length: ${runway.length_ft ?? "Unknown"} ft — ` +
+                `Width: ${runway.width_ft ?? "Unknown"} ft — ` +
+                `Surface: ${runway.surface ?? "Unknown"} — ` +
+                `Lighted: ${
+                    runway.lighted === null
+                        ? "Unknown"
+                        : runway.lighted
+                          ? "Yes"
+                          : "No"
+                } — ` +
+                `Closed: ${
+                    runway.closed === null
+                        ? "Unknown"
+                        : runway.closed
+                          ? "Yes"
+                          : "No"
+                }`;
+
+            runwayList.appendChild(item);
+        });
+
+        drawRunways(data.runways);
+        airportMap.invalidateSize();
+    } catch (error) {
+        const item = document.createElement("li");
+        item.textContent = "Could not load runways.";
+        runwayList.appendChild(item);
+        console.error(error);
+    }
+}
 
 function showAirports() {
     const search = airportSearch.value.trim().toLowerCase();
-
-    airportList.innerHTML = "";
+    airportList.replaceChildren();
 
     airports
         .filter((airport) =>
@@ -50,71 +181,22 @@ function showAirports() {
             text.textContent =
                 `${airport.ident} - ${airport.name} (${airport.country}) `;
             text.style.cursor = "pointer";
-
-            text.addEventListener("click", async () => {
-                const details = document.getElementById("airport-details");
-                const content = document.getElementById("airport-details-content");
-                const runwayList = document.getElementById("airport-runways");
-
-                content.textContent =
-                    `${airport.ident} — ${airport.name} — ${airport.country} | ` +
-                    `Latitude: ${airport.latitude}, Longitude: ${airport.longitude}`;
-
-                details.hidden = false;
-                runwayList.replaceChildren();
-
-                airportMap.setView(
-                    [Number(airport.latitude), Number(airport.longitude)],
-                    8
-                );
-                document.getElementById("airport-map").scrollIntoView({
-                    behavior: "smooth",
-                });
-
-                try {
-                    const response = await fetch(
-                        `http://127.0.0.1:8000/airports/${encodeURIComponent(airport.ident)}/runways`
-                    );
-
-                    if (!response.ok) {
-                        throw new Error("Could not load runways");
-                    }
-
-                    const data = await response.json();
-
-                    if (data.runways.length === 0) {
-                        const item = document.createElement("li");
-                        item.textContent = "No runways found.";
-                        runwayList.appendChild(item);
-                    }
-
-                    data.runways.forEach((runway) => {
-                        const item = document.createElement("li");
-                        item.textContent =
-                            `${runway.le_ident ?? "?"}/${runway.he_ident ?? "?"} — ` +
-                            `Length: ${runway.length_ft ?? "Unknown"} ft — ` +
-                            `Width: ${runway.width_ft ?? "Unknown"} ft — ` +
-                            `Surface: ${runway.surface ?? "Unknown"} — ` +
-                            `Lighted: ${runway.lighted === null ? "Unknown" : runway.lighted ? "Yes" : "No"} — ` +
-                            `Closed: ${runway.closed === null ? "Unknown" : runway.closed ? "Yes" : "No"}`;
-                        runwayList.appendChild(item);
-                    });
-                } catch (error) {
-                    const item = document.createElement("li");
-                    item.textContent = "Could not load runways.";
-                    runwayList.appendChild(item);
-                }
-            });
+            text.addEventListener("click", () => selectAirport(airport));
 
             deleteButton.type = "button";
             deleteButton.textContent = "Delete";
 
             deleteButton.addEventListener("click", async () => {
-                const confirmed = window.confirm(`Delete ${airport.name}?`);
-                if (!confirmed) return;
+                const confirmed = window.confirm(
+                    `Delete ${airport.name}?`
+                );
+
+                if (!confirmed) {
+                    return;
+                }
 
                 const response = await fetch(
-                    `http://127.0.0.1:8000/airports/${airport.id}`,
+                    `${API_URL}/airports/${airport.id}`,
                     { method: "DELETE" }
                 );
 
@@ -134,7 +216,7 @@ function showAirports() {
 }
 
 async function loadAirports() {
-    const response = await fetch("http://127.0.0.1:8000/airports");
+    const response = await fetch(`${API_URL}/airports`);
     const data = await response.json();
 
     airports = data.airports;
@@ -144,7 +226,7 @@ async function loadAirports() {
 
 airportSearch.addEventListener("input", showAirports);
 
-form.addEventListener("submit", async function (event) {
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const airport = {
@@ -155,7 +237,7 @@ form.addEventListener("submit", async function (event) {
         longitude: Number(document.getElementById("longitude").value),
     };
 
-    const response = await fetch("http://127.0.0.1:8000/airports", {
+    const response = await fetch(`${API_URL}/airports`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -164,16 +246,15 @@ form.addEventListener("submit", async function (event) {
     });
 
     if (!response.ok) {
-        alert("Could not add the airport.");
+        window.alert("Could not add the airport.");
         return;
     }
 
     form.reset();
     await loadAirports();
-    alert("Airport added successfully.");
+    await loadProductMetrics();
+    window.alert("Airport added successfully.");
 });
-
-loadAirports();
 
 async function checkTechnicalStatus() {
     const apiStatus = document.getElementById("api-status");
@@ -181,33 +262,36 @@ async function checkTechnicalStatus() {
     const lastCheck = document.getElementById("last-check");
 
     try {
-        const apiResponse = await fetch("http://127.0.0.1:8000/health");
+        const apiResponse = await fetch(`${API_URL}/health`);
         const databaseResponse = await fetch(
-            "http://127.0.0.1:8000/health/database"
+            `${API_URL}/health/database`
         );
+
+        if (!apiResponse.ok || !databaseResponse.ok) {
+            throw new Error("Health check failed");
+        }
 
         const apiData = await apiResponse.json();
         const databaseData = await databaseResponse.json();
 
         apiStatus.textContent = apiData.status;
         databaseStatus.textContent = databaseData.database;
-        lastCheck.textContent = new Date().toLocaleString("en-US");
     } catch (error) {
         apiStatus.textContent = "unavailable";
         databaseStatus.textContent = "unavailable";
-        lastCheck.textContent = new Date().toLocaleString("en-US");
     }
-}
 
-checkTechnicalStatus();
+    lastCheck.textContent = new Date().toLocaleString("en-US");
+}
 
 async function loadProductMetrics() {
     const airportTotal = document.getElementById("airport-total");
-
-    const response = await fetch("http://127.0.0.1:8000/airports");
+    const response = await fetch(`${API_URL}/airports`);
     const data = await response.json();
 
     airportTotal.textContent = data.airports.length;
 }
 
+loadAirports();
+checkTechnicalStatus();
 loadProductMetrics();

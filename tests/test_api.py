@@ -138,18 +138,33 @@ def test_get_airport_runways(monkeypatch, tmp_path):
             width_ft INTEGER,
             surface TEXT,
             lighted INTEGER,
-            closed INTEGER
+            closed INTEGER,
+            le_latitude_deg REAL,
+            le_longitude_deg REAL,
+            he_latitude_deg REAL,
+            he_longitude_deg REAL
         )
         """
     )
     connection.executemany(
         """
-        INSERT INTO runways
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO runways (
+            id, airport_ident, le_ident, he_ident,
+            length_ft, width_ft, surface, lighted, closed,
+            le_latitude_deg, le_longitude_deg,
+            he_latitude_deg, he_longitude_deg
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         [
-            (1, "DAAE", "08", "26", 7874, 148, "ASP", 1, 0),
-            (2, "EGLL", "09L", "27R", 12799, 164, "ASP", 1, 0),
+            (
+                1, "DAAE", "08", "26", 7874, 148, "ASP", 1, 0,
+                36.71, 5.05, 36.71, 5.08,
+            ),
+            (
+                2, "EGLL", "09L", "27R", 12799, 164, "ASP", 1, 0,
+                None, None, None, None,
+            ),
         ],
     )
     connection.commit()
@@ -167,5 +182,9 @@ def test_get_airport_runways(monkeypatch, tmp_path):
 
     assert response.status_code == 200
     assert len(response.json()["runways"]) == 1
-    assert response.json()["runways"][0]["le_ident"] == "08"
-    assert response.json()["runways"][0]["airport_ident"] == "DAAE"
+
+    runway = response.json()["runways"][0]
+    assert runway["airport_ident"] == "DAAE"
+    assert runway["le_ident"] == "08"
+    assert runway["le_latitude_deg"] == 36.71
+    assert runway["he_longitude_deg"] == 5.08

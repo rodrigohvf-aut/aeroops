@@ -13,26 +13,40 @@ def optional_int(value):
     return int(value) if value else None
 
 
+def optional_coordinate(value, minimum, maximum):
+    value = value.strip()
+
+    if not value:
+        return None
+
+    coordinate = float(value)
+
+    if not minimum <= coordinate <= maximum:
+        raise ValueError("Invalid coordinate")
+
+    return coordinate
+
+
 def main():
     connection = get_connection()
 
-    if DATABASE_URL:
-        insert_sql = """
-            INSERT INTO runways (
-                id, airport_ident, le_ident, he_ident,
-                length_ft, width_ft, surface, lighted, closed
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (id) DO NOTHING
-        """
-    else:
-        insert_sql = """
-            INSERT OR IGNORE INTO runways (
-                id, airport_ident, le_ident, he_ident,
-                length_ft, width_ft, surface, lighted, closed
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
+    placeholder = "%s" if DATABASE_URL else "?"
+    placeholders = ", ".join([placeholder] * 13)
+
+    upsert_sql = f"""
+        INSERT INTO runways (
+            id, airport_ident, le_ident, he_ident,
+            length_ft, width_ft, surface, lighted, closed,
+            le_latitude_deg, le_longitude_deg,
+            he_latitude_deg, he_longitude_deg
+        )
+        VALUES ({placeholders})
+        ON CONFLICT (id) DO UPDATE SET
+            le_latitude_deg = excluded.le_latitude_deg,
+            le_longitude_deg = excluded.le_longitude_deg,
+            he_latitude_deg = excluded.he_latitude_deg,
+            he_longitude_deg = excluded.he_longitude_deg
+    """
 
     try:
         airport_codes = {
@@ -40,7 +54,7 @@ def main():
             for row in connection.execute("SELECT ident FROM airports")
         }
 
-        imported = 0
+        processed = 0
 
         with CSV_PATH.open(encoding="utf-8-sig", newline="") as csv_file:
             for runway in csv.DictReader(csv_file):
@@ -60,17 +74,29 @@ def main():
                         runway["surface"].strip() or None,
                         optional_int(runway["lighted"]),
                         optional_int(runway["closed"]),
+                        optional_coordinate(
+                            runway["le_latitude_deg"], -90, 90
+                        ),
+                        optional_coordinate(
+                            runway["le_longitude_deg"], -180, 180
+                        ),
+                        optional_coordinate(
+                            runway["he_latitude_deg"], -90, 90
+                        ),
+                        optional_coordinate(
+                            runway["he_longitude_deg"], -180, 180
+                        ),
                     )
                 except ValueError:
                     continue
 
-                cursor = connection.execute(insert_sql, values)
-                imported += cursor.rowcount
+                connection.execute(upsert_sql, values)
+                processed += 1
 
         connection.commit()
 
         database_name = "PostgreSQL" if DATABASE_URL else "local SQLite"
-        print(f"Imported {imported} runways into {database_name}.")
+        print(f"Processed {processed} runways in {database_name}.")
 
     finally:
         connection.close()

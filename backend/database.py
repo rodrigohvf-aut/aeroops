@@ -17,36 +17,62 @@ def get_connection():
 def create_tables():
     if DATABASE_URL:
         return
+
     connection = get_connection()
 
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS airports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ident TEXT NOT NULL,
-            name TEXT NOT NULL,
-            country TEXT NOT NULL,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL
+    try:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS airports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ident TEXT NOT NULL,
+                name TEXT NOT NULL,
+                country TEXT NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL
+            )
+            """
         )
-        """
-    )
 
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS runways (
-            id INTEGER PRIMARY KEY,
-            airport_ident TEXT NOT NULL,
-            le_ident TEXT,
-            he_ident TEXT,
-            length_ft INTEGER,
-            width_ft INTEGER,
-            surface TEXT,
-            lighted INTEGER,
-            closed INTEGER
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS runways (
+                id INTEGER PRIMARY KEY,
+                airport_ident TEXT NOT NULL,
+                le_ident TEXT,
+                he_ident TEXT,
+                length_ft INTEGER,
+                width_ft INTEGER,
+                surface TEXT,
+                lighted INTEGER,
+                closed INTEGER,
+                le_latitude_deg REAL,
+                le_longitude_deg REAL,
+                he_latitude_deg REAL,
+                he_longitude_deg REAL
+            )
+            """
         )
-        """
-    )
 
-    connection.commit()
-    connection.close()
+        existing_columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(runways)")
+        }
+
+        coordinate_columns = (
+            "le_latitude_deg",
+            "le_longitude_deg",
+            "he_latitude_deg",
+            "he_longitude_deg",
+        )
+
+        for column in coordinate_columns:
+            if column not in existing_columns:
+                connection.execute(
+                    f"ALTER TABLE runways ADD COLUMN {column} REAL"
+                )
+
+        connection.commit()
+
+    finally:
+        connection.close()

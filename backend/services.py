@@ -83,7 +83,7 @@ def list_runways(airport_ident: str):
         rows = connection.execute(
             f"""
             SELECT id, airport_ident, le_ident, he_ident,
-                   length_ft, width_ft, surface, lighted, closed
+                   length_ft, width_ft, surface, lighted, closed,le_latitude_deg,le_longitude_deg,he_latitude_deg,he_longitude_deg
             FROM runways
             WHERE airport_ident = {placeholder}
             ORDER BY le_ident
