@@ -30,21 +30,21 @@ Future development will focus on aviation data integration, analytical dashboard
 
 ## Current status
 
-The current application includes:
+AeroOps is a functional MVP under active development. Users can add, search, view, and delete airports through a browser-based dashboard. Selecting an airport shows its details and runways. Where endpoint coordinates are available, the selected airport's runways appear as interactive lines on a Leaflet map.
 
-- A FastAPI backend for listing, creating, and deleting airports.
-- A web interface built with HTML, CSS, and JavaScript.
-- Data validation through the API's airport model.
-- SQLite for local development.
-- A PostgreSQL development database on Supabase.
-- A separate PostgreSQL test database in local Docker.
-- A versioned SQL migration for the `airports` table.
-- Automated tests with pytest and Playwright.
-- OpenAPI documentation at `/docs`, `/redoc`, and `/openapi.json`.
-- API and database health endpoints, request logs, and basic measurements.
+The application currently includes:
+
+- A FastAPI backend with airport and runway endpoints.
+- A frontend built with HTML, CSS, JavaScript, and Leaflet.
+- Airport data validation and API documentation through OpenAPI.
+- 80 imported airports and 111 imported runways in the AeroOps Supabase project; 104 runways have coordinates for both ends.
+- SQLite for local development and PostgreSQL on Supabase for the connected application.
+- SQL migrations for the PostgreSQL airport and runway tables.
+- Automated API, contract, regression, model, and browser tests.
+- API and database health checks, request logs, and basic measurements.
 - Docker Compose services for the API, Nginx, and local PostgreSQL.
 
-The Docker Compose API is connected to Supabase PostgreSQL; listing, creating, and deleting airports were verified. The separate local PostgreSQL database `aeroops_test` was used in a manual run of eight non-browser tests. The default local test run and browser E2E test use SQLite.
+The latest non-browser test run passed 13 tests. VPS deployment and broader aviation analytics remain future work.
 
 ## Project structure
 
@@ -53,54 +53,60 @@ aeroops/
 ├── backend/                              FastAPI application
 │   ├── __init__.py                       Marks backend as a Python package
 │   ├── main.py                           Creates the app, middleware and health routes
-│   ├── routes.py                         Airport API endpoints
-│   ├── models.py                         Airport data validation
-│   ├── services.py                       Airport operations and database queries
-│   ├── database.py                       SQLite or PostgreSQL connection
-│   └── config.py                         Settings read from environment variables
+│   ├── routes.py                         Defines airport and runway API endpoints
+│   ├── models.py                         Validates airport input data
+│   ├── services.py                       Runs airport and runway database operations
+│   ├── database.py                       Connects to SQLite or PostgreSQL
+│   └── config.py                         Reads settings from environment variables
 │
-├── frontend/                             Browser interface
-│   ├── index.html                        Dashboard structure and forms
+├── frontend/                             Browser dashboard
+│   ├── index.html                        Page structure, panels and form
 │   ├── style.css                         Colours and layout
-│   └── app.js                            API calls and dashboard interactions
+│   └── app.js                            API calls, interactions and Leaflet map
 │
 ├── tests/                                Automated tests
-│   ├── test_api.py                        API behaviour
-│   ├── test_models.py                     Data validation
+│   ├── test_api.py                        API behaviour, including runway responses
+│   ├── test_models.py                     Airport data validation
 │   ├── test_contract.py                   OpenAPI route contract
 │   ├── test_regression.py                 Existing routes
 │   └── test_e2e.py                        Real-browser workflow
 │
-├── scripts/                              Manual performance tools
+├── scripts/                              Data imports and load testing
+│   ├── import_airports.py                 Imports airports from CSV
+│   ├── import_runways.py                  Imports runways and endpoint coordinates
 │   ├── load_test.py                       Request load test
 │   └── load_test_pooled.py                Load test with reused connections
 │
-├── supabase/                             Supabase configuration
+├── data/                                 Source aviation data
+│   ├── airports.csv                       Airport dataset
+│   └── runways.csv                        Runway dataset
+│
+├── supabase/                             Supabase configuration and migrations
 │   ├── config.toml                        Local Supabase project settings
 │   └── migrations/
-│       └── 20261023000000_create_airports.sql
-│                                         PostgreSQL airports table migration
+│       ├── 20261023000000_create_airports.sql       Creates the airports table
+│       ├── 20261111000000_create_runways.sql        Creates the runways table
+│       └── 20261111010000_add_runway_coordinates.sql Adds runway endpoint coordinates
 │
 ├── nginx/
 │   └── nginx.conf                         Reverse proxy configuration
-├── docs/
-│   ├── aeroops-overview.jpg               Architecture infographic
-│   └── load-test-results.md               Recorded performance results
-├── data/                                  Folder reserved for project data
 │
-├── Dockerfile                             Instructions to build the API image
-├── docker-compose.yml                     Runs the local containers together
+├── docs/
+│   ├── aeroops-overview.jpg               Technical overview infographic
+│   └── load-test-results.md               Recorded performance results
+│
+├── Dockerfile                             Builds the API image
+├── docker-compose.yml                     Defines the local containers
 ├── requirements.txt                       Python dependencies
 ├── .env.example                           Example environment settings
-├── .env                                   Local settings and credentials
-├── .gitignore                             Files Git should ignore
-├── aeroops.db                             Local SQLite database
+├── .env                                   Local settings and credentials; not committed
+├── .gitignore                             Git ignore rules
+├── aeroops.db                             Local SQLite database; not committed
 ├── aeroops.code-workspace                 VS Code workspace settings
-├── README.md                              Project overview
-│
-├── .venv/                                 Local Python environment
-├── .vscode/                               Local VS Code settings
-└── .git/                                  Git history and repository settings
+├── README.md                              Project overview and architecture decisions
+├── .venv/                                 Local Python environment; not committed
+├── .vscode/                               Local VS Code settings; not committed
+└── .git/                                  Local Git history and repository settings
 ```
 
 ## Goal
@@ -114,16 +120,18 @@ The planned capabilities include airport and runway information, aircraft data i
 AeroOps uses a containerized architecture with Nginx as a reverse proxy, FastAPI as the backend application, and PostgreSQL hosted on Supabase as the configured primary database.
 
 ```text
+Local development
+
 Browser
-   |
-   v
-Nginx (localhost:8080)
-   |
-   v
-FastAPI (Docker container, port 8000)
-   |
-   v
-Supabase PostgreSQL
+├── Loads HTML, CSS and JavaScript from localhost:5500
+└── JavaScript calls FastAPI at localhost:8000
+    ├── API routes → services → database connection
+    └── SQLite or Supabase PostgreSQL, selected by DATABASE_URL
+
+Docker Compose setup
+
+Browser → Nginx at localhost:8080 → FastAPI container
+                                      └── Supabase PostgreSQL
 ```
 
 ### Database configuration
@@ -152,14 +160,14 @@ Database configuration is managed through environment variables, allowing the ap
 - GET /airports — lists airports.
 - POST /airports — creates an airport.
 - DELETE /airports/{airport_id} — deletes an airport.
+- GET /airports/{airport_ident}/runways — lists the runways of an airport, including endpoint coordinates when available.
 
-## Data sources to evaluate
+## Aviation data sources
 
-- OurAirports.
-- OpenSky Network, within its free-use limits.
-- Open-Meteo.
-- Other public sources compatible with the project.
-These sources are part of the plan; they have not yet been integrated.
+- **OurAirports — integrated:** CSV files provide the airport and runway data currently imported into AeroOps.
+- **OpenSky Network — to evaluate:** Possible source of aircraft data, subject to its usage limits.
+- **Open-Meteo — to evaluate:** Possible source of weather data.
+- **Other public sources — to evaluate:** Sources will be assessed for data quality, licensing, and suitability.
 
 ## Product indicators
 
@@ -243,4 +251,22 @@ Real-time aircraft tracking and paid data APIs are not requirements for the init
 - Docker Compose is suitable for local development and relatively simple deployments but does not provide all the orchestration capabilities required by complex distributed systems.
 
 **Status:** Implemented locally. VPS and AWS deployments planned.
+
+### ADR-004 — Importing public aviation datasets
+
+**Decision:** Import airport and runway data from OurAirports CSV files into the application's database.
+
+**Context:** AeroOps needs worldwide aviation data while keeping data-source costs at zero. Real-time aircraft tracking is not required for the initial version.
+
+**Rationale:**
+- Public CSV files allow us to build and test the dashboard without paying for a data API.
+- Storing the imported data locally or in PostgreSQL lets the application query it through its own API.
+- Import scripts keep data collection separate from API requests and map rendering.
+
+**Trade-offs:**
+- Imported data is a snapshot and can become outdated.
+- Updates currently require running the import process again.
+- The current import is a limited sample, not a complete worldwide catalogue.
+
+**Status:** Implemented for airports and runways; scheduled updates remain future work.
 

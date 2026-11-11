@@ -75,6 +75,7 @@ function drawRunways(runways) {
         L.polyline(ends, {
             color: "#ef4444",
             weight: 6,
+            runwayId: runway.id,
         })
             .bindPopup(
                 `Runway ${runway.le_ident ?? "?"}/${runway.he_ident ?? "?"}`
@@ -149,8 +150,23 @@ async function selectAirport(airport) {
                           ? "Yes"
                           : "No"
                 }`;
+                item.style.cursor = "pointer";
 
-            runwayList.appendChild(item);
+                item.addEventListener("click", () => {
+                    const line = runwayLines
+                        .getLayers()
+                        .find((layer) => layer.options.runwayId === runway.id);
+
+                    if (!line) return;
+
+                    airportMap.fitBounds(line.getBounds(), {
+                        padding: [50, 50],
+                        maxZoom: 17,
+                    });
+                    line.openPopup();
+                    airportMapElement.scrollIntoView({ behavior: "smooth" });
+                });
+                runwayList.appendChild(item);
         });
 
         drawRunways(data.runways);
