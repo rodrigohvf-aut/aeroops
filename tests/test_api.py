@@ -217,3 +217,59 @@ def test_get_runway_count(monkeypatch, tmp_path):
 
     assert response.status_code == 200
     assert response.json() == {"total_runways": 2}
+    
+
+def test_search_airports_by_code_name_and_country(monkeypatch, tmp_path):
+    from backend import services
+
+    database_path = tmp_path / "airport_search_test.db"
+
+    connection = sqlite3.connect(database_path)
+    connection.execute(
+        """
+        CREATE TABLE airports (
+            id INTEGER PRIMARY KEY,
+            ident TEXT NOT NULL,
+            name TEXT NOT NULL,
+            country TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL
+        )
+        """
+    )
+    connection.executemany(
+        """
+        INSERT INTO airports
+            (id, ident, name, country, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (1, "DAAE", "Soummam Airport", "DZ", 36.7, 5.0),
+            (2, "SBGR", "Guarulhos Airport", "BR", -23.4, -46.5),
+            (3, "EGLL", "Heathrow Airport", "GB", 51.4, -0.4),
+        ],
+    )
+    connection.commit()
+    connection.close()
+
+    def test_connection():
+        connection = sqlite3.connect(database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    monkeypatch.setattr(services, "get_connection", test_connection)
+    monkeypatch.setattr(services, "DATABASE_URL", None)
+
+    searches = [
+        ("daae", "DAAE"),       # Código, sem diferenciar maiúsculas
+        ("Heathrow", "EGLL"),   # Nome
+        ("BR", "SBGR"),         # País
+    ]
+
+    for search, expected_ident in searches:
+        response = client.get("/airports", params={"search": search})
+
+        assert response.status_code == 200
+        assert [airport["ident"] for airport in response.json()["airports"]] == [
+            expected_ident
+        ]

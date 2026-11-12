@@ -5,8 +5,8 @@ from .services import create_airport, delete_airport, list_airports, list_runway
 router = APIRouter()
 
 @router.get("/airports")
-def get_airports():
-    return {"airports": list_airports()}
+def get_airports(search: str = ""):
+    return {"airports": list_airports(search)}
 
 
 @router.post("/airports")

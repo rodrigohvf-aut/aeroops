@@ -1,6 +1,7 @@
 from .database import get_connection
 from .config import DATABASE_URL
 
+
 def create_airport(airport):
     connection = get_connection()
 
@@ -38,20 +39,34 @@ def create_airport(airport):
     return {**airport.model_dump(), "id": airport_id}
 
 
-def list_airports():
+
+def list_airports(search: str = ""):
     connection = get_connection()
 
-    rows = connection.execute(
+    try:
+        query = """
+            SELECT id, ident, name, country, latitude, longitude
+            FROM airports
         """
-        SELECT id, ident, name, country, latitude, longitude
-        FROM airports
-        ORDER BY name
-        """
-    ).fetchall()
+        values = ()
 
-    connection.close()
+        if search.strip():
+            placeholder = "%s" if DATABASE_URL else "?"
+            query += f"""
+                WHERE LOWER(ident) LIKE LOWER({placeholder})
+                   OR LOWER(name) LIKE LOWER({placeholder})
+                   OR LOWER(country) LIKE LOWER({placeholder})
+            """
+            term = f"%{search.strip()}%"
+            values = (term, term, term)
 
-    return [dict(row) for row in rows]
+        query += " ORDER BY name"
+
+        rows = connection.execute(query, values).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
 
 
 def delete_airport(airport_id):
@@ -74,6 +89,7 @@ def delete_airport(airport_id):
 
     return deleted
 
+
 def list_runways(airport_ident: str):
     connection = get_connection()
 
@@ -95,6 +111,7 @@ def list_runways(airport_ident: str):
 
     finally:
         connection.close()
+
 
 def count_runways():
     connection = get_connection()

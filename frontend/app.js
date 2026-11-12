@@ -248,14 +248,23 @@ function showAirports() {
         });
 }
 
+let latestAirportRequest = 0;
+
 async function loadAirports() {
-    const response = await fetch(`${API_URL}/airports`);
+    const requestId = ++latestAirportRequest;
+    const search = encodeURIComponent(airportSearch.value.trim());
+
+    const response = await fetch(`${API_URL}/airports?search=${search}`);
     const data = await response.json();
+
+    if (requestId !== latestAirportRequest) return;
 
     airports = data.airports;
     showAirports();
     showAirportMarkers();
 }
+
+airportSearch.addEventListener("input", loadAirports);
 
 airportSearch.addEventListener("input", () => {
     showAirports();
