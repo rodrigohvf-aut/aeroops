@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from .models import Airport
-from .services import create_airport, delete_airport, list_airports, list_runways
+from .services import create_airport, delete_airport, list_airports, list_runways, count_runways
 
 router = APIRouter()
 
@@ -27,3 +27,8 @@ def remove_airport(airport_id: int):
 @router.get("/airports/{airport_ident}/runways")
 def get_airport_runways(airport_ident: str):
     return {"runways": list_runways(airport_ident)}
+
+
+@router.get("/runways/count")
+def get_runway_count():
+    return {"total_runways": count_runways()}

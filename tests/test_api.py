@@ -188,3 +188,32 @@ def test_get_airport_runways(monkeypatch, tmp_path):
     assert runway["le_ident"] == "08"
     assert runway["le_latitude_deg"] == 36.71
     assert runway["he_longitude_deg"] == 5.08
+
+
+def test_get_runway_count(monkeypatch, tmp_path):
+    from backend import services
+
+    database_path = tmp_path / "runway_count_test.db"
+
+    connection = sqlite3.connect(database_path)
+    connection.execute(
+        "CREATE TABLE runways (id INTEGER PRIMARY KEY)"
+    )
+    connection.executemany(
+        "INSERT INTO runways (id) VALUES (?)",
+        [(1,), (2,)],
+    )
+    connection.commit()
+    connection.close()
+
+    def test_connection():
+        connection = sqlite3.connect(database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    monkeypatch.setattr(services, "get_connection", test_connection)
+
+    response = client.get("/runways/count")
+
+    assert response.status_code == 200
+    assert response.json() == {"total_runways": 2}

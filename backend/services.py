@@ -95,3 +95,14 @@ def list_runways(airport_ident: str):
 
     finally:
         connection.close()
+
+def count_runways():
+    connection = get_connection()
+
+    try:
+        row = connection.execute(
+            "SELECT COUNT(*) AS total FROM runways"
+        ).fetchone()
+        return row["total"]
+    finally:
+        connection.close()

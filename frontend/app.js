@@ -322,10 +322,25 @@ async function checkTechnicalStatus() {
 
 async function loadProductMetrics() {
     const airportTotal = document.getElementById("airport-total");
+    const countryTotal = document.getElementById("country-total");
+
     const response = await fetch(`${API_URL}/airports`);
     const data = await response.json();
 
     airportTotal.textContent = data.airports.length;
+
+    const countries = new Set(
+        data.airports
+            .map((airport) => airport.country)
+            .filter((country) => country)
+    );
+
+    countryTotal.textContent = countries.size;
+    const runwayTotal = document.getElementById("runway-total");
+    const runwayResponse = await fetch(`${API_URL}/runways/count`);
+    const runwayData = await runwayResponse.json();
+
+runwayTotal.textContent = runwayData.total_runways;
 }
 
 loadAirports();
