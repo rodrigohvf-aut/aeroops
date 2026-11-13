@@ -21,6 +21,7 @@ def test_create_airport_in_browser():
 
             page.once("dialog", lambda dialog: dialog.accept())
             page.click("button[type='submit']")
+            page.fill("#airport-search", ident)
 
             expect(page.locator("#airport-list")).to_contain_text(
                 f"{ident} - E2E Airport"

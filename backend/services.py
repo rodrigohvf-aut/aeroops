@@ -40,29 +40,30 @@ def create_airport(airport):
 
 
 
-def list_airports(search: str = ""):
+def list_airports(search: str = "", limit: int = 20, offset: int = 0):
     connection = get_connection()
 
     try:
+        placeholder = "%s" if DATABASE_URL else "?"
         query = """
             SELECT id, ident, name, country, latitude, longitude
             FROM airports
         """
-        values = ()
+        values = []
 
         if search.strip():
-            placeholder = "%s" if DATABASE_URL else "?"
             query += f"""
                 WHERE LOWER(ident) LIKE LOWER({placeholder})
                    OR LOWER(name) LIKE LOWER({placeholder})
                    OR LOWER(country) LIKE LOWER({placeholder})
             """
             term = f"%{search.strip()}%"
-            values = (term, term, term)
+            values.extend([term, term, term])
 
-        query += " ORDER BY name"
+        query += f" ORDER BY name, id LIMIT {placeholder} OFFSET {placeholder}"
+        values.extend([limit, offset])
 
-        rows = connection.execute(query, values).fetchall()
+        rows = connection.execute(query, tuple(values)).fetchall()
         return [dict(row) for row in rows]
     finally:
         connection.close()
@@ -119,6 +120,45 @@ def count_runways():
     try:
         row = connection.execute(
             "SELECT COUNT(*) AS total FROM runways"
+        ).fetchone()
+        return row["total"]
+    finally:
+        connection.close()
+
+
+def count_airports(search: str = ""):
+    connection = get_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+        query = "SELECT COUNT(*) AS total FROM airports"
+        values = ()
+
+        if search.strip():
+            query += f"""
+                WHERE LOWER(ident) LIKE LOWER({placeholder})
+                   OR LOWER(name) LIKE LOWER({placeholder})
+                   OR LOWER(country) LIKE LOWER({placeholder})
+            """
+            term = f"%{search.strip()}%"
+            values = (term, term, term)
+
+        row = connection.execute(query, values).fetchone()
+        return row["total"]
+    finally:
+        connection.close()
+
+
+def count_countries():
+    connection = get_connection()
+
+    try:
+        row = connection.execute(
+            """
+            SELECT COUNT(DISTINCT country) AS total
+            FROM airports
+            WHERE country IS NOT NULL AND country != ''
+            """
         ).fetchone()
         return row["total"]
     finally:

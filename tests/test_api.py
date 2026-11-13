@@ -273,3 +273,58 @@ def test_search_airports_by_code_name_and_country(monkeypatch, tmp_path):
         assert [airport["ident"] for airport in response.json()["airports"]] == [
             expected_ident
         ]
+
+
+def test_airport_pagination(monkeypatch, tmp_path):
+    from backend import services
+
+    database_path = tmp_path / "pagination_test.db"
+
+    connection = sqlite3.connect(database_path)
+    connection.execute(
+        """
+        CREATE TABLE airports (
+            id INTEGER PRIMARY KEY,
+            ident TEXT NOT NULL,
+            name TEXT NOT NULL,
+            country TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL
+        )
+        """
+    )
+    connection.executemany(
+        """
+        INSERT INTO airports
+            (id, ident, name, country, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (1, "AAAA", "Alpha Airport", "BR", 0, 0),
+            (2, "BBBB", "Bravo Airport", "BR", 0, 0),
+            (3, "CCCC", "Charlie Airport", "PT", 0, 0),
+        ],
+    )
+    connection.commit()
+    connection.close()
+
+    def test_connection():
+        connection = sqlite3.connect(database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    monkeypatch.setattr(services, "get_connection", test_connection)
+    monkeypatch.setattr(services, "DATABASE_URL", None)
+
+    first = client.get("/airports", params={"page": 1, "limit": 2})
+    second = client.get("/airports", params={"page": 2, "limit": 2})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["total"] == second.json()["total"] == 3
+    assert [item["ident"] for item in first.json()["airports"]] == [
+        "AAAA", "BBBB"
+    ]
+    assert [item["ident"] for item in second.json()["airports"]] == [
+        "CCCC"
+    ]

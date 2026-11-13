@@ -1,12 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from .models import Airport
-from .services import create_airport, delete_airport, list_airports, list_runways, count_runways
+from .services import (create_airport,delete_airport,list_airports,list_runways,count_runways,count_airports,count_countries,)
 
 router = APIRouter()
 
+
 @router.get("/airports")
-def get_airports(search: str = ""):
-    return {"airports": list_airports(search)}
+def get_airports(
+    search: str = "",
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+):
+    offset = (page - 1) * limit
+
+    return {
+        "airports": list_airports(search, limit, offset),
+        "total": count_airports(search),
+        "page": page,
+        "limit": limit,
+    }
 
 
 @router.post("/airports")
@@ -32,3 +44,8 @@ def get_airport_runways(airport_ident: str):
 @router.get("/runways/count")
 def get_runway_count():
     return {"total_runways": count_runways()}
+
+
+@router.get("/countries/count")
+def get_country_count():
+    return {"total_countries": count_countries()}

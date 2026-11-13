@@ -4,6 +4,10 @@ const form = document.getElementById("airport-form");
 const airportList = document.getElementById("airport-list");
 const airportSearch = document.getElementById("airport-search");
 const airportMapElement = document.getElementById("airport-map");
+const previousPageButton = document.getElementById("previous-page");
+const nextPageButton = document.getElementById("next-page");
+const pageInfo = document.getElementById("page-info");
+
 
 const airportMap = L.map("airport-map").setView([20, 0], 2);
 
@@ -248,13 +252,17 @@ function showAirports() {
         });
 }
 
+let currentPage = 1;
+const pageLimit = 20;
 let latestAirportRequest = 0;
 
 async function loadAirports() {
     const requestId = ++latestAirportRequest;
     const search = encodeURIComponent(airportSearch.value.trim());
 
-    const response = await fetch(`${API_URL}/airports?search=${search}`);
+    const response = await fetch(
+        `${API_URL}/airports?search=${search}&page=${currentPage}&limit=${pageLimit}`
+    );
     const data = await response.json();
 
     if (requestId !== latestAirportRequest) return;
@@ -262,13 +270,26 @@ async function loadAirports() {
     airports = data.airports;
     showAirports();
     showAirportMarkers();
+
+    const totalPages = Math.max(1, Math.ceil(data.total / pageLimit));
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    previousPageButton.disabled = currentPage === 1;
+    nextPageButton.disabled = currentPage >= totalPages;
 }
 
-airportSearch.addEventListener("input", loadAirports);
-
 airportSearch.addEventListener("input", () => {
-    showAirports();
-    showAirportMarkers();
+    currentPage = 1;
+    loadAirports();
+});
+
+previousPageButton.addEventListener("click", () => {
+    currentPage -= 1;
+    loadAirports();
+});
+
+nextPageButton.addEventListener("click", () => {
+    currentPage += 1;
+    loadAirports();
 });
 
 form.addEventListener("submit", async (event) => {
@@ -336,7 +357,7 @@ async function loadProductMetrics() {
     const response = await fetch(`${API_URL}/airports`);
     const data = await response.json();
 
-    airportTotal.textContent = data.airports.length;
+    airportTotal.textContent = data.total;
 
     const countries = new Set(
         data.airports
@@ -344,7 +365,9 @@ async function loadProductMetrics() {
             .filter((country) => country)
     );
 
-    countryTotal.textContent = countries.size;
+    const countryResponse = await fetch(`${API_URL}/countries/count`);
+    const countryData = await countryResponse.json();
+    countryTotal.textContent = countryData.total_countries;
     const runwayTotal = document.getElementById("runway-total");
     const runwayResponse = await fetch(`${API_URL}/runways/count`);
     const runwayData = await runwayResponse.json();
