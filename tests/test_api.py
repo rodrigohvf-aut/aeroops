@@ -328,3 +328,73 @@ def test_airport_pagination(monkeypatch, tmp_path):
     assert [item["ident"] for item in second.json()["airports"]] == [
         "CCCC"
     ]
+
+
+def test_manual_aircraft_position_rejects_opensky_source():
+    response = client.post(
+        "/aircraft/positions",
+        json={
+            "icao24": "abc123",
+            "latitude": -23.35,
+            "longitude": -46.20,
+            "observed_at": "2026-11-13T12:15:00Z",
+            "source": "opensky",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_and_read_simulated_aircraft_position(monkeypatch, tmp_path):
+    from backend import services
+
+    database_path = tmp_path / "aircraft_positions_test.db"
+
+    connection = sqlite3.connect(database_path)
+    connection.execute(
+        """
+        CREATE TABLE aircraft_positions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            icao24 TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            observed_at TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'simulated',
+            UNIQUE (icao24, observed_at)
+        )
+        """
+    )
+    connection.commit()
+    connection.close()
+
+    def test_connection():
+        connection = sqlite3.connect(database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    monkeypatch.setattr(services, "get_connection", test_connection)
+    monkeypatch.setattr(services, "DATABASE_URL", None)
+
+    created = client.post(
+        "/aircraft/positions",
+        json={
+            "icao24": "abc123",
+            "latitude": -23.35,
+            "longitude": -46.20,
+            "observed_at": "2026-11-13T12:15:00Z",
+            "source": "simulated",
+        },
+    )
+
+    assert created.status_code == 201
+    assert created.json()["source"] == "simulated"
+
+    history = client.get("/aircraft/abc123/positions")
+    assert history.status_code == 200
+    assert len(history.json()["positions"]) == 1
+    assert history.json()["positions"][0]["source"] == "simulated"
+
+    latest = client.get("/aircraft/positions/latest")
+    assert latest.status_code == 200
+    assert len(latest.json()["positions"]) == 1
+    assert latest.json()["positions"][0]["source"] == "simulated"

@@ -1,7 +1,10 @@
 import sqlite3
-from .config import DATABASE_PATH, DATABASE_URL
+
 import psycopg
 from psycopg.rows import dict_row
+
+from .config import DATABASE_PATH, DATABASE_URL
+
 
 def get_connection():
     if DATABASE_URL:
@@ -9,6 +12,7 @@ def get_connection():
             DATABASE_URL,
             row_factory=dict_row,
         )
+
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
     return connection
@@ -62,10 +66,24 @@ def create_tables():
                 latitude REAL NOT NULL,
                 longitude REAL NOT NULL,
                 observed_at TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'simulated',
                 UNIQUE (icao24, observed_at)
             )
             """
         )
+
+        position_columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(aircraft_positions)"
+            )
+        }
+
+        if "source" not in position_columns:
+            connection.execute(
+                "ALTER TABLE aircraft_positions "
+                "ADD COLUMN source TEXT NOT NULL DEFAULT 'simulated'"
+            )
 
         existing_columns = {
             row["name"]

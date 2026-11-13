@@ -23,6 +23,7 @@ const aircraftTrack = L.layerGroup().addTo(airportMap);
 const runwayLines = L.featureGroup().addTo(airportMap);
 
 let airports = [];
+let selectedAircraftIcao24 = null;
 
 function showAirportMarkers() {
     airportMarkers.clearLayers();
@@ -404,18 +405,26 @@ async function loadLatestAircraftPositions() {
         })
             .bindPopup(
                 `Aircraft ${position.icao24}<br>` +
-                `Observed: ${position.observed_at}`
+                `Observed: ${position.observed_at}<br>` +
+                `Source: ${
+                    position.source === "simulated"
+                        ? "Simulated (test data)"
+                        : position.source
+                }`
             )
             .on("click", () => showAircraftTrack(position.icao24))
             .addTo(aircraftMarkers);
     });
+
+    if (selectedAircraftIcao24) {
+        await showAircraftTrack(selectedAircraftIcao24);
+    }
 }
 
-loadAirports();
-checkTechnicalStatus();
-loadProductMetrics();
 
 async function showAircraftTrack(icao24) {
+    selectedAircraftIcao24 = icao24;
+
     const response = await fetch(
         `${API_URL}/aircraft/${encodeURIComponent(icao24)}/positions`
     );
@@ -445,6 +454,7 @@ async function showAircraftTrack(icao24) {
         color: "#f97316",
         weight: 4,
     }).addTo(aircraftTrack);
+
     L.circleMarker(points[0], {
         radius: 6,
         color: "#2563eb",
@@ -459,4 +469,8 @@ async function showAircraftTrack(icao24) {
     });
 }
 
+loadAirports();
+checkTechnicalStatus();
+loadProductMetrics();
 loadLatestAircraftPositions();
+setInterval(loadLatestAircraftPositions, 15000);

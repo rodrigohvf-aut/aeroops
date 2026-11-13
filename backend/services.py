@@ -176,14 +176,15 @@ def create_aircraft_position(position):
             position.observed_at
             if DATABASE_URL
             else position.observed_at.isoformat(),
+            position.source,
         )
 
         if DATABASE_URL:
             cursor = connection.execute(
                 """
                 INSERT INTO aircraft_positions
-                    (icao24, latitude, longitude, observed_at)
-                VALUES (%s, %s, %s, %s)
+                    (icao24, latitude, longitude, observed_at, source)
+                VALUES (%s, %s, %s, %s, %s)
                 RETURNING id
                 """,
                 values,
@@ -193,8 +194,8 @@ def create_aircraft_position(position):
             cursor = connection.execute(
                 """
                 INSERT INTO aircraft_positions
-                    (icao24, latitude, longitude, observed_at)
-                VALUES (?, ?, ?, ?)
+                    (icao24, latitude, longitude, observed_at, source)
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 values,
             )
@@ -205,6 +206,7 @@ def create_aircraft_position(position):
         return {
             "id": position_id,
             **position.model_dump(mode="json"),
+            "icao24": position.icao24.lower(),
         }
     finally:
         connection.close()
@@ -217,7 +219,7 @@ def list_aircraft_positions(icao24: str, limit: int = 100):
         placeholder = "%s" if DATABASE_URL else "?"
         rows = connection.execute(
             f"""
-            SELECT id, icao24, latitude, longitude, observed_at
+            SELECT id, icao24, latitude, longitude, observed_at, source
             FROM aircraft_positions
             WHERE icao24 = {placeholder}
             ORDER BY observed_at DESC, id DESC
@@ -238,10 +240,10 @@ def list_latest_aircraft_positions(limit: int = 100):
         placeholder = "%s" if DATABASE_URL else "?"
         rows = connection.execute(
             f"""
-            SELECT id, icao24, latitude, longitude, observed_at
+            SELECT id, icao24, latitude, longitude, observed_at, source
             FROM (
                 SELECT
-                    id, icao24, latitude, longitude, observed_at,
+                    id, icao24, latitude, longitude, observed_at, source,
                     ROW_NUMBER() OVER (
                         PARTITION BY icao24
                         ORDER BY observed_at DESC, id DESC
