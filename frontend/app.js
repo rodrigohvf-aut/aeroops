@@ -18,6 +18,8 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(airportMap);
 
 const airportMarkers = L.layerGroup().addTo(airportMap);
+const aircraftMarkers = L.layerGroup().addTo(airportMap);
+const aircraftTrack = L.layerGroup().addTo(airportMap);
 const runwayLines = L.featureGroup().addTo(airportMap);
 
 let airports = [];
@@ -375,6 +377,86 @@ async function loadProductMetrics() {
 runwayTotal.textContent = runwayData.total_runways;
 }
 
+async function loadLatestAircraftPositions() {
+    const response = await fetch(`${API_URL}/aircraft/positions/latest`);
+
+    if (!response.ok) {
+        console.error("Could not load aircraft positions.");
+        return;
+    }
+
+    const data = await response.json();
+    aircraftMarkers.clearLayers();
+
+    data.positions.forEach((position) => {
+        const latitude = Number(position.latitude);
+        const longitude = Number(position.longitude);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return;
+        }
+
+        L.circleMarker([latitude, longitude], {
+            radius: 8,
+            color: "#f97316",
+            fillColor: "#f97316",
+            fillOpacity: 0.9,
+        })
+            .bindPopup(
+                `Aircraft ${position.icao24}<br>` +
+                `Observed: ${position.observed_at}`
+            )
+            .on("click", () => showAircraftTrack(position.icao24))
+            .addTo(aircraftMarkers);
+    });
+}
+
 loadAirports();
 checkTechnicalStatus();
 loadProductMetrics();
+
+async function showAircraftTrack(icao24) {
+    const response = await fetch(
+        `${API_URL}/aircraft/${encodeURIComponent(icao24)}/positions`
+    );
+
+    if (!response.ok) {
+        console.error("Could not load aircraft track.");
+        return;
+    }
+
+    const data = await response.json();
+    aircraftTrack.clearLayers();
+
+    const points = data.positions
+        .slice()
+        .reverse()
+        .map((position) => [
+            Number(position.latitude),
+            Number(position.longitude),
+        ])
+        .filter(([latitude, longitude]) =>
+            Number.isFinite(latitude) && Number.isFinite(longitude)
+        );
+
+    if (points.length < 2) return;
+
+    const line = L.polyline(points, {
+        color: "#f97316",
+        weight: 4,
+    }).addTo(aircraftTrack);
+    L.circleMarker(points[0], {
+        radius: 6,
+        color: "#2563eb",
+        fillColor: "#2563eb",
+        fillOpacity: 1,
+    })
+        .bindPopup("First recorded position")
+        .addTo(aircraftTrack);
+
+    airportMap.fitBounds(line.getBounds(), {
+        padding: [50, 50],
+    });
+}
+
+loadLatestAircraftPositions();

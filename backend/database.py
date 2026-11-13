@@ -54,6 +54,19 @@ def create_tables():
             """
         )
 
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS aircraft_positions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                icao24 TEXT NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                observed_at TEXT NOT NULL,
+                UNIQUE (icao24, observed_at)
+            )
+            """
+        )
+
         existing_columns = {
             row["name"]
             for row in connection.execute("PRAGMA table_info(runways)")

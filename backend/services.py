@@ -163,3 +163,98 @@ def count_countries():
         return row["total"]
     finally:
         connection.close()
+
+
+def create_aircraft_position(position):
+    connection = get_connection()
+
+    try:
+        values = (
+            position.icao24.lower(),
+            position.latitude,
+            position.longitude,
+            position.observed_at
+            if DATABASE_URL
+            else position.observed_at.isoformat(),
+        )
+
+        if DATABASE_URL:
+            cursor = connection.execute(
+                """
+                INSERT INTO aircraft_positions
+                    (icao24, latitude, longitude, observed_at)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id
+                """,
+                values,
+            )
+            position_id = cursor.fetchone()["id"]
+        else:
+            cursor = connection.execute(
+                """
+                INSERT INTO aircraft_positions
+                    (icao24, latitude, longitude, observed_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                values,
+            )
+            position_id = cursor.lastrowid
+
+        connection.commit()
+
+        return {
+            "id": position_id,
+            **position.model_dump(mode="json"),
+        }
+    finally:
+        connection.close()
+
+
+def list_aircraft_positions(icao24: str, limit: int = 100):
+    connection = get_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+        rows = connection.execute(
+            f"""
+            SELECT id, icao24, latitude, longitude, observed_at
+            FROM aircraft_positions
+            WHERE icao24 = {placeholder}
+            ORDER BY observed_at DESC, id DESC
+            LIMIT {placeholder}
+            """,
+            (icao24.lower(), limit),
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+
+def list_latest_aircraft_positions(limit: int = 100):
+    connection = get_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+        rows = connection.execute(
+            f"""
+            SELECT id, icao24, latitude, longitude, observed_at
+            FROM (
+                SELECT
+                    id, icao24, latitude, longitude, observed_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY icao24
+                        ORDER BY observed_at DESC, id DESC
+                    ) AS position_rank
+                FROM aircraft_positions
+            ) AS ranked_positions
+            WHERE position_rank = 1
+            ORDER BY observed_at DESC, id DESC
+            LIMIT {placeholder}
+            """,
+            (limit,),
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
